@@ -20,7 +20,7 @@ render_performance_card(
     player_name='Ali Yılmaz',
     icon='⚽',
     stats=stats,
-    camp_name='71U Kamp - Şubat 2026',
+    camp_name='U17 Kamp - Şubat 2026',
     score=75.0  # Bileşik skor
 )
 ```
