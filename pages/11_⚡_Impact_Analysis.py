@@ -4,7 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 from config import AGE_GROUPS, METRICS, PRIMARY_METRICS, DEFAULT_MINUTES
 from database import db_manager
-from styles import inject_styles, page_header, section_title, COLORS
+from styles import inject_styles, page_header, section_title, info_box, COLORS
 from utils import calculate_impact_score_engine, calculate_development_stats, render_export_buttons
 
 # ── SAYFA KONFİGÜRASYONU VE GİRİŞ ──────────────────────────────────────────────
@@ -58,17 +58,18 @@ with st.expander("📌 BURSASPOR İMPACT (ETKİ) MODELİ: İSTATİSTİKSEL METOD
     **Adım 5: Boylamsal Gelişim Analizi (Longitudinal Development)**
     "Geçmiş Haftalara Göre Gelişim" sekmesi, oyuncunun mevcut hafta verilerini, veritabanındaki **tüm geçmiş hafta ortalamaları** ile kıyaslar.
     * **Formül:** $$Gelişim\\ \\% = \\left( \\frac{{\\text{{Güncel Hafta Ort.}} - \\text{{Geçmiş Haftalar Ort.}}}}{{\\text{{Geçmiş Haftalar Ort.}}}} \\right) \\times 100$$
-    Bu sayede antrenörler "Bu çocuk geçen haftaya göre %15 daha fazla sprint üretiyor" yorumunu verilere dayanarak net bir şekilde yapabilir.
+    Bu sayede antrenörler "Bu oyuncu geçen haftalara göre %15 daha fazla sprint üretiyor" yorumunu verilere dayanarak net bir şekilde yapabilir.
     """, unsafe_allow_html=True)
 
 # ── VERİ FİLTRELEME VE ÇEKME KATI ─────────────────────────────────────────────
+st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 c1, c2, c3 = st.columns(3)
 with c1:
     age_group = st.selectbox("HEDEF TAKIM / YAŞ GRUBU", AGE_GROUPS, key="ia_age")
 
 raw_age_data = db_manager.get_data_by_age_group(age_group)
 if raw_age_data.empty:
-    st.warning(f"{age_group} için veritabanında kayıtlı veri bulunamadı.")
+    st.warning(f"{age_group} için veritabanında kayıtlı veri bulunamadı. Lütfen sol menüden veri yükleyin.")
     st.stop()
 
 camps_df = db_manager.get_camps(age_group)
@@ -76,7 +77,7 @@ camp_options = {row['camp_name']: row['camp_id'] for _, row in camps_df.iterrows
 
 with c2:
     if camp_options:
-        sel_camp_label = st.selectbox("HAFTA SEÇİMİ", list(camp_options.keys()), key="ia_camp")
+        sel_camp_label = st.selectbox("MİKRO DÖNGÜ (HAFTA) SEÇİMİ", list(camp_options.keys()), key="ia_camp")
         sel_camp_id = camp_options[sel_camp_label]
         
         camp_dates = raw_age_data[raw_age_data['camp_id'] == sel_camp_id]['tarih']
@@ -85,11 +86,11 @@ with c2:
         else:
             sel_camp_start_date = pd.Timestamp.now()
     else:
-        st.warning(f"{age_group} için tanımlı bir hafta bulunamadı.")
+        st.warning(f"{age_group} için tanımlı bir hafta (mikro döngü) bulunamadı.")
         st.stop()
 
 with c3:
-    ses = radio_ses = st.radio("SEANS TİPİ", ["Tümü", "TRAINING", "MATCH"], horizontal=True, key="ia_ses")
+    ses = st.radio("SEANS TİPİ", ["Tümü", "TRAINING", "MATCH"], horizontal=True, key="ia_ses")
 
 # ── IMPACT ENGINE (HESAPLAMA MOTORU) ──────────────────────────────────────────
 raw_camp_data = raw_age_data[raw_age_data['camp_id'] == sel_camp_id].copy()
@@ -101,10 +102,11 @@ if raw_camp_data.empty:
 if ses != "Tümü":
     raw_camp_data = raw_camp_data[raw_camp_data['tip'].str.upper() == ses]
 
+# Temel model hesaplama fonksiyonunu çağırıyoruz
 camp_data = calculate_impact_score_engine(raw_camp_data)
 
 if camp_data is None or camp_data.empty:
-    st.warning("Hesaplanabilir geçerli veri bulunamadı (dakikası 0 olan veya hatalı veriler sistem tarafından filtrelenmiştir).")
+    st.warning("Hesaplanabilir geçerli veri bulunamadı (dakikası 0 olan veya filtrelenmiş veriler).")
     st.stop()
 
 # Pandas index hatası için koruma kalkanı
@@ -117,8 +119,8 @@ st.divider()
 tab1, tab2, tab3, tab4 = st.tabs([
     "📊 GÜNLÜK TAKIM SIRALAMASI",
     "📋 HAFTA LİDERLERİ (TÜM KADRO)", 
-    "📈 GEÇMİŞ HAFTALARA GÖRE GELİŞİM",
-    "📉 HAFTA İÇİ TREND"
+    "📈 GEÇMİŞE GÖRE GELİŞİM",
+    "📉 HAFTA İÇİ VARYANS (TREND)"
 ])
 
 # ── TAB 1: GÜNLÜK SIRALAMA (Anlık Form Durumu) ────────────────────────────────
@@ -135,7 +137,7 @@ with tab1:
         
         day_data = camp_data[camp_data['tarih'] == sel_date].sort_values('impact_score', ascending=False)
         
-        col_a, col_b = st.columns([1, 1])
+        col_a, col_b = st.columns([1, 1], gap="large")
         
         with col_a:
             section_title("TAKIM SIRALAMASI TABLOSU", "📋")
@@ -145,8 +147,13 @@ with tab1:
             show_df.columns = ['OYUNCU', 'IMPACT SKOR', 'İSTATİSTİKSEL DURUM', d_dist_25, d_load, d_smax]
             show_df.index = np.arange(1, len(show_df) + 1)
             
-            # Renk skalası Yeşile çevrildi
-            st.dataframe(show_df.style.background_gradient(cmap='Greens', subset=['IMPACT SKOR'], vmin=20, vmax=90), 
+            # Renk skalası Bursaspor Yeşiline (Greens) ayarlandı, eksik veriler gizlendi
+            st.dataframe(show_df.style.format({
+                            'IMPACT SKOR': '{:.1f}', 
+                            d_dist_25: '{:.0f}', 
+                            d_load: '{:.1f}', 
+                            d_smax: '{:.1f}'
+                        }).background_gradient(cmap='Greens', subset=['IMPACT SKOR'], vmin=20, vmax=90), 
                          use_container_width=True, height=600)
             
             render_export_buttons(df=show_df.reset_index(drop=True), key_prefix="ia_daily", filename=f"Gunluk_Impact_{pd.to_datetime(sel_date).strftime('%d%m%Y')}")
@@ -161,7 +168,7 @@ with tab1:
                 orientation='h',
                 marker=dict(
                     color=day_data['impact_score'],
-                    colorscale='Greens', # Renk skalası Yeşile çevrildi
+                    colorscale='Greens', # Bursaspor Teması
                     cmin=30, cmax=90,
                     line=dict(color='rgba(0,0,0,0.1)', width=1)
                 ),
@@ -169,10 +176,11 @@ with tab1:
                 textposition='outside',
                 textfont=dict(family="DM Sans", size=11, color=COLORS['GRAY_800'], weight="bold")
             ))
+            
             fig.update_layout(
                 template='plotly_white',
-                height=max(600, len(day_data) * 25),
-                margin=dict(l=20, r=20, t=20, b=20),
+                height=max(600, len(day_data) * 28),
+                margin=dict(l=20, r=40, t=20, b=20),
                 xaxis=dict(title="Etki Puanı / Impact Score (0-100)", gridcolor='#F3F4F6'),
                 yaxis=dict(autorange="reversed", tickfont=dict(weight="bold", color=COLORS['GRAY_800']))
             )
@@ -192,13 +200,16 @@ with tab2:
     ).reset_index().sort_values('avg_impact', ascending=False)
     
     camp_impact.index = np.arange(1, len(camp_impact) + 1)
-    
     camp_impact.columns = ['OYUNCU', 'HAFTA ORT. İMPACT', f'ORT. {d_dist_25} (m/dk)', f'ORT. {d_load} (/dk)', f'HAFTA {d_smax}', 'KATILDIĞI SEANS']
     
     st.dataframe(
-        camp_impact.style.format(precision=1)\
-            .background_gradient(cmap='Greys', subset=['HAFTA ORT. İMPACT'], vmin=40, vmax=80)\
-            .highlight_max(subset=[f'HAFTA {d_smax}'], color='#dcfce7'), # Maksimum hız için hafif yeşil tonu
+        camp_impact.style.format({
+            'HAFTA ORT. İMPACT': '{:.1f}',
+            f'ORT. {d_dist_25} (m/dk)': '{:.2f}',
+            f'ORT. {d_load} (/dk)': '{:.2f}',
+            f'HAFTA {d_smax}': '{:.1f}'
+        }).background_gradient(cmap='Greys', subset=['HAFTA ORT. İMPACT'], vmin=40, vmax=80)\
+          .highlight_max(subset=[f'HAFTA {d_smax}'], color='#dcfce7'), # Maksimum hız için hafif Bursaspor yeşili
         use_container_width=True, height=650
     )
     
@@ -213,7 +224,7 @@ with tab3:
     historical_raw = raw_age_data[(raw_age_data['camp_id'] != sel_camp_id) & (raw_age_data['tarih_dt'] < sel_camp_start_date)].copy()
     
     if historical_raw.empty:
-        st.info("Bu yaş grubunda seçili haftadan daha eski (önceki tarihlere ait) bir veri bulunmuyor. Gelişim analizi yapılamaz.")
+        info_box("Bu yaş grubunda seçili haftadan daha eski (önceki tarihlere ait) bir veri bulunmuyor. Kıyaslama yapılamaz.")
     else:
         players = sorted(camp_data['player_name'].unique())
         sel_player = st.selectbox("OYUNCU SEÇİNİZ", players, key="ia_dev_player")
@@ -224,7 +235,7 @@ with tab3:
             historical_processed = historical_processed.reset_index()
             
         if historical_processed.empty or sel_player not in historical_processed['player_name'].values:
-             st.warning(f"⚠️ {sel_player.upper()} isimli oyuncunun seçilen tarihten daha eski bir kaydı bulunmuyor (İlk kez verisi girilmiş olabilir). Gelişim oranı hesaplanamadı.")
+             st.warning(f"⚠️ {sel_player.upper()} isimli oyuncunun seçilen tarihten daha eski bir kaydı bulunmuyor (Sisteme ilk kez verisi girilmiş olabilir). Gelişim oranı hesaplanamadı.")
         else:
             dev_stats = calculate_development_stats(camp_data, historical_processed)
             
@@ -232,7 +243,6 @@ with tab3:
                 player_dev = dev_stats.loc[sel_player]
                 
                 cols = st.columns(4)
-                
                 metrics_dict = {
                     'impact_score': 'İMPACT SKOR DEĞİŞİMİ',
                     'dist_25_plus_pm': f'{d_dist_25} (m/dk)',
@@ -252,9 +262,9 @@ with tab3:
                     
                     with cols[idx]:
                         st.markdown(f"""
-                        <div style="border: 1px solid #E5E7EB; border-radius: 6px; padding: 20px; background: white; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                            <div style="font-size: 11px; color: #6B7280; font-weight: 800; letter-spacing: 1px;">{label}</div>
-                            <div style="font-size: 32px; font-family: 'Bebas Neue'; color: {color}; margin-top: 5px;">
+                        <div style="border: 1px solid #E5E7EB; border-radius: 8px; padding: 22px; background: white; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: transform 0.2s;">
+                            <div style="font-size: 11px; color: #6B7280; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">{label}</div>
+                            <div style="font-size: 34px; font-family: 'Bebas Neue', sans-serif; color: {color}; margin-top: 8px;">
                                 {val_str}
                             </div>
                         </div>
@@ -265,7 +275,7 @@ with tab3:
 # ── TAB 4: TREND ANALİZİ (İstikrar Tespiti) ──────────────────────────────────
 with tab4:
     section_title("HAFTA İÇİ ETKİ (IMPACT) TRENDİ", "📉")
-    st.markdown("<p style='color: gray; font-size: 13px;'>Oyuncunun haftanın ilk gününden son gününe kadar gösterdiği performans dalgalanması (Varyans). Bu grafik oyuncunun yorgunluk direncini ölçer.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: gray; font-size: 13px;'>Oyuncunun haftanın ilk gününden son gününe kadar gösterdiği performans dalgalanması (Varyans). Bu grafik oyuncunun yorgunluk direncini ve istikrarını ölçer.</p>", unsafe_allow_html=True)
     
     sel_player_trend = st.selectbox("OYUNCU SEÇİNİZ", sorted(camp_data['player_name'].unique()), key="ia_trend_player")
     player_trend_data = camp_data[camp_data['player_name'] == sel_player_trend].sort_values('tarih')
@@ -275,29 +285,42 @@ with tab4:
         daily_impact['tarih_str'] = daily_impact['tarih'].dt.strftime('%d.%m')
         
         fig = go.Figure()
+        
+        # Arka plan alan doldurması (Hafif yeşil)
+        fig.add_trace(go.Scatter(
+            x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
+            mode='lines',
+            fill='tozeroy',
+            fillcolor='rgba(0,122,51,0.05)', # Bursaspor Yeşil gradyan
+            line=dict(width=0),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+        
+        # Ana Çizgi
         fig.add_trace(go.Scatter(
             x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
             mode='lines+markers',
             name='Impact Score',
-            line=dict(color=COLORS['GREEN'], width=3, shape='spline'), # Kırmızıdan yeşile çevrildi
-            marker=dict(size=10, color='white', line=dict(color=COLORS['GREEN'], width=2))
+            line=dict(color=COLORS['GREEN'], width=3, shape='spline'),
+            marker=dict(size=12, color='white', line=dict(color=COLORS['GREEN'], width=2.5))
         ))
         
         mean_impact = daily_impact['impact_score'].mean()
         fig.add_hline(y=mean_impact, line_dash="dash", line_color=COLORS['GRAY_400'], 
-                      annotation_text=f"Hafta Ortalaması: {mean_impact:.1f}",
+                      annotation_text=f"Ortalama: {mean_impact:.1f}",
                       annotation_position="top left",
-                      annotation_font=dict(size=11, color=COLORS['GRAY_600']))
+                      annotation_font=dict(size=12, color=COLORS['GRAY_700'], weight="bold"))
                       
         fig.update_layout(
             template="plotly_white", 
             height=450, 
-            margin=dict(l=20, r=20, t=30, b=20),
+            margin=dict(l=20, r=20, t=40, b=20),
             xaxis=dict(title="Tarih", gridcolor='#F3F4F6', tickfont=dict(weight="bold")),
-            yaxis=dict(title="Impact Score (0-100)", gridcolor='#F3F4F6')
+            yaxis=dict(title="Impact Score (0-100)", gridcolor='#F3F4F6', range=[max(0, daily_impact['impact_score'].min()-10), min(100, daily_impact['impact_score'].max()+10)])
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Trend analizi grafiği çizebilmek için oyuncunun bu haftada en az 2 seans verisi gereklidir.")
+        info_box("Trend analizi grafiği çizebilmek için oyuncunun bu haftada en az 2 geçerli seans (antrenman/maç) verisi gereklidir.")
 
 st.markdown('<div class="tff-footer"><p>Bursaspor Veri Merkezi · A Takım ve Akademi Atletik Performans Sistemi</p></div>', unsafe_allow_html=True)
