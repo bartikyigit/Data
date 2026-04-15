@@ -2,7 +2,7 @@ import pandas as pd
 import sqlite3
 from pathlib import Path
 
-DB_PATH = 'tff_performans.db'
+DB_PATH = 'bursaspor_performans.db' # Veritabanı adı güncellendi
 
 class DatabaseManager:
     def __init__(self, db_path=DB_PATH):
@@ -97,9 +97,6 @@ class DatabaseManager:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        # ── YENİ EKLENEN KISIM: TEST VERİLERİ (CMJ, NORDIC, SPRINT) TABLOSU ───
-        # AÇIKLAMA: Hem 51U (Kuvvet) hem 71U (Sprint+Kuvvet) testlerindeki tüm 
-        # kolonları kapsayan "Şemsiye Tablo" modellemesi.
         c.execute('''
             CREATE TABLE IF NOT EXISTS performance_tests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -172,13 +169,13 @@ class DatabaseManager:
         try:
             df = pd.read_excel(file_path, sheet_name='Training_Match_Data')
             df.columns = [str(c).strip() for c in df.columns]
-            kamp_info = self._extract_camp_info(file_path, age_group)
-            df_norm   = self._normalize_data(df, age_group, kamp_info)
+            hafta_info = self._extract_camp_info(file_path, age_group)
+            df_norm   = self._normalize_data(df, age_group, hafta_info)
             conn = self.get_connection()
             c    = conn.cursor()
             dates = pd.to_datetime(df_norm['tarih'])
             c.execute('INSERT OR REPLACE INTO camps (camp_id, age_group, camp_name, start_date, end_date) VALUES (?,?,?,?,?)',
-                (kamp_info['camp_id'], age_group, kamp_info['camp_name'],
+                (hafta_info['camp_id'], age_group, hafta_info['camp_name'],
                  dates.min().strftime('%Y-%m-%d'), dates.max().strftime('%Y-%m-%d')))
             for pname in df_norm['player_name'].unique():
                 c.execute('INSERT OR IGNORE INTO players (name, age_group) VALUES (?,?)', (pname, age_group))
@@ -202,25 +199,21 @@ class DatabaseManager:
                     inserted += 1
                 except Exception:
                     pass
-            self._log_action('excel_import', f"{age_group} / {kamp_info['camp_name']} — {inserted} satır")
+            self._log_action('excel_import', f"{age_group} / {hafta_info['camp_name']} — {inserted} satır")
             conn.commit()
             return {'status': 'success',
-                    'message': f"✅ {inserted} satır yüklendi — {age_group} / {kamp_info['camp_name']}",
+                    'message': f"✅ {inserted} satır yüklendi — {age_group} / {hafta_info['camp_name']}",
                     'records': inserted,
                     'has_acc_dec': bool(df_norm['has_acc_dec'].iloc[0]),
                     'has_n_counts': bool(df_norm['has_n_counts'].iloc[0])}
         except Exception as e:
             return {'status': 'error', 'message': f"❌ Hata: {str(e)}"}
 
-    # ── YENİ EKLENEN KISIM: TEST EXCELLERİ İÇİN AKILLI İÇE AKTARMA MOTORU ────
     def test_excel_to_db(self, file_path, age_group, test_date):
-        """Test Excel dosyalarını (51U, 71U vb.) veritabanına aktaran dinamik motor."""
         try:
             df = pd.read_excel(file_path)
-            # Kolon isimlerindeki baştaki/sondaki boşlukları temizle
             df.columns = [str(c).strip() for c in df.columns]
             
-            # Dinamik Kolon Eşleştirme (Hem 51U hem 71U formatını otomatik algılar)
             col_map = {
                 'Name': 'player_name',
                 'BW (kg)': 'bw_kg',
@@ -253,24 +246,20 @@ class DatabaseManager:
             inserted = 0
 
             for _, row in df.iterrows():
-                # İsimsiz veya hatalı satırları atla
                 if pd.isna(row.get('Name')) or str(row.get('Name')).strip() == '':
                     continue
                 
                 p_name = str(row['Name']).strip()
                 
-                # Tarih Hiyerarşisi: Eğer Excel'de Date varsa onu kullan, yoksa parametreden (UI) geleni kullan
                 row_date = test_date
                 if 'Date' in df.columns and not pd.isna(row['Date']):
                     try:
                         row_date = pd.to_datetime(row['Date']).strftime('%Y-%m-%d')
                     except:
-                        pass # Dönüştüremezse UI'dan geleni kullanmaya devam et
+                        pass 
 
-                # Oyuncu oyuncular (players) tablosunda yoksa oluştur
                 c.execute('INSERT OR IGNORE INTO players (name, age_group) VALUES (?,?)', (p_name, age_group))
 
-                # Gelen Excele göre değerleri doldur, olmayan kolona NULL (None) ata
                 db_values = {}
                 for excel_col, db_col in col_map.items():
                     if excel_col in df.columns and not pd.isna(row[excel_col]):
@@ -313,7 +302,6 @@ class DatabaseManager:
             return {'status': 'error', 'message': f"❌ Hata: {str(e)}"}
 
     def get_test_data(self, age_group=None, player_name=None):
-        """Performans testi verilerini filtreleyerek getiren fonksiyon."""
         query = "SELECT * FROM performance_tests WHERE 1=1"
         params = []
         if age_group:
@@ -330,11 +318,11 @@ class DatabaseManager:
         name = getattr(file_path, 'name', str(file_path))
         stem = Path(name).stem
         parts = stem.split('_')
-        camp_name = '_'.join(parts[1:]) if len(parts) > 1 else stem
-        camp_id   = abs(hash(stem)) % 100000
-        return {'camp_id': camp_id, 'camp_name': camp_name, 'start_date': None, 'end_date': None}
+        hafta_name = '_'.join(parts[1:]) if len(parts) > 1 else stem
+        hafta_id   = abs(hash(stem)) % 100000
+        return {'camp_id': hafta_id, 'camp_name': hafta_name, 'start_date': None, 'end_date': None}
 
-    def _normalize_data(self, df, age_group, kamp_info):
+    def _normalize_data(self, df, age_group, hafta_info):
         d = df.copy()
         d['tarih_dt'] = pd.to_datetime(d['Tarih'], dayfirst=True, errors='coerce')
         has_acc_dec  = 'Dist Acc>3' in d.columns
@@ -350,7 +338,6 @@ class DatabaseManager:
                 return pd.to_numeric(d[col].astype(str).str.replace(',','.'), errors='coerce')
             return pd.Series([None]*len(d))
             
-        # ─── AKILLI SEANS (MAÇ/ANTRENMAN) ALGILAYICI EKLENDİ ───
         tip_col = None
         for col in d.columns:
             if str(col).upper().strip() in ['TIP', 'TİP', 'SESSION', 'SEANS', 'SEANS TİPİ', 'ACTIVITY']:
@@ -368,7 +355,6 @@ class DatabaseManager:
             return 'TRAINING'
             
         final_tip = raw_tip.apply(parse_tip)
-        # ────────────────────────────────────────────────────────
         
         name_col = 'Name' if 'Name' in d.columns else d.columns[0]
         smax     = to_num('SMax (kmh)') if 'SMax (kmh)' in d.columns else to_num('S.Max (kmh)')
@@ -376,7 +362,7 @@ class DatabaseManager:
         result = pd.DataFrame({
             'player_name': d[name_col].astype(str).str.strip(),
             'age_group':   age_group,
-            'camp_id':     kamp_info['camp_id'],
+            'camp_id':     hafta_info['camp_id'],
             'tarih':       d['tarih_dt'].dt.strftime('%Y-%m-%d'),
             'minutes':     to_num('Minutes'),
             'total_distance': to_num('Total Distance'),
@@ -481,7 +467,7 @@ class DatabaseManager:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute("DELETE FROM performance_data WHERE camp_id = ?", (camp_id,))
                 conn.execute("DELETE FROM camps WHERE camp_id = ?", (camp_id,))
-            self._log_action("delete_camp", f"Kamp ID {camp_id} sistemden silindi.")
+            self._log_action("delete_camp", f"Hafta ID {camp_id} sistemden silindi.")
             return True
         except Exception as e:
             print(f"Silme hatası: {e}")

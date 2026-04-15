@@ -11,7 +11,6 @@ from config import (METRICS, METRICS_BASE, METRICS_ACC_DEC,
                     METRICS_N, RADAR_METRICS, PRIMARY_METRICS, DEFAULT_MINUTES)
 from styles import COLORS, PLAYER_PALETTE
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # RENK YARDIMCILARI
 # ─────────────────────────────────────────────────────────────────────────────
@@ -21,12 +20,10 @@ def hex_to_rgba(hex_color: str, alpha: float = 0.15) -> str:
     r, g, b = int(h[0:2],16), int(h[2:4],16), int(h[4:6],16)
     return f"rgba({r},{g},{b},{alpha})"
 
-
 def day_color(tip, alpha=1.0):
     if 'MATCH' in str(tip).upper():
-        return f"rgba(13,13,13,{alpha})"
-    return f"rgba(227,10,23,{alpha})"
-
+        return f"rgba(13,13,13,{alpha})" # Siyah
+    return f"rgba(0,122,51,{alpha})" # Yeşil (Bursaspor)
 
 def percentile_color(pct: float) -> str:
     """0-100 percentile → red to green gradient."""
@@ -34,7 +31,6 @@ def percentile_color(pct: float) -> str:
     g = int(10  * (1 - pct/100) + 150 * (pct/100))
     b = int(23  * (1 - pct/100) + 96  * (pct/100))
     return f"rgb({r},{g},{b})"
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PERCENTİLE RANK (SKORLAMA) HESAPLAMASI
@@ -50,7 +46,6 @@ def calculate_percentile_rank(player_values: pd.Series, population_values: pd.Se
     n_equal = np.sum(pop == player_mean)
     pct = (n_less + 0.5 * n_equal) / n * 100
     return round(float(pct), 1)
-
 
 def calculate_composite_score(player_data: pd.DataFrame,
                                population_data: pd.DataFrame,
@@ -80,7 +75,6 @@ def calculate_composite_score(player_data: pd.DataFrame,
     result['composite'] = round(np.mean(valid_metrics), 1) if valid_metrics else 0.0
     return result
 
-
 def calculate_player_stats(player_data: pd.DataFrame) -> dict:
     if player_data.empty:
         return {}
@@ -91,6 +85,7 @@ def calculate_player_stats(player_data: pd.DataFrame) -> dict:
     total_min = player_data['minutes'].sum()
     return {
         'camp_count':            player_data['camp_id'].nunique(),
+        'week_count':            player_data['camp_id'].nunique(), 
         'session_count':         player_data['tarih'].nunique(), 
         'match_count':           match['tarih'].nunique() if not match.empty else 0, 
         'training_count':        train['tarih'].nunique() if not train.empty else 0,
@@ -104,7 +99,6 @@ def calculate_player_stats(player_data: pd.DataFrame) -> dict:
     }
 
 get_player_stats = calculate_player_stats
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MİN / MAX / ORT ÖZET TABLOSU VE SIRALAMA
@@ -171,7 +165,6 @@ def build_stats_table(player_data: pd.DataFrame, team_data: pd.DataFrame) -> pd.
             'SKOR':           f"%{pct:.0f}"      if pct is not None else '—',
         })
     return pd.DataFrame(rows)
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # IMPACT SCORE & OBJEKTİF KARAR MOTORU 
@@ -255,48 +248,32 @@ def style_development_table(df):
         return 'background-color: #fef08a; color: black'
     return df.style.map(color_val)
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # BENZER OYUNCU BULMA (COSINE SIMILARITY ENGINE)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def find_similar_players(player_name, df, metrics):
-    """
-    Kosinüs Benzerliği kullanarak seçilen oyuncuya en yakın profil eşleşmelerini yapar.
-    """
     if df.empty or player_name not in df['player_name'].values:
         return None
 
-    # 1. Oyuncu bazlı metrik ortalamalarını al
     player_averages = df.groupby('player_name')[metrics].mean().fillna(0)
-    
-    # 2. Normalizasyon: Birimleri eşitlemek için Min-Max Scaling (0-1 arası)
     scaler = MinMaxScaler()
     scaled_data = scaler.fit_transform(player_averages)
     scaled_df = pd.DataFrame(scaled_data, index=player_averages.index, columns=metrics)
-    
-    # 3. Referans oyuncunun vektörü
     target_vector = scaled_df.loc[[player_name]]
-    
-    # 4. Kosinüs Benzerliği Hesapla
     similarities = cosine_similarity(target_vector, scaled_df)[0]
     
-    # 5. Sonuçları DataFrame'e dönüştür
     similarity_df = pd.DataFrame({
         'OYUNCU': scaled_df.index,
         'BENZERLİK (%)': (similarities * 100).round(1)
     })
     
-    # Kendisini listeden çıkar ve büyükten küçüğe sırala
     similarity_df = similarity_df[similarity_df['OYUNCU'] != player_name]
     return similarity_df.sort_values('BENZERLİK (%)', ascending=False).reset_index(drop=True)
 
-
 def plot_dual_radar(p1_name, p1_data, p2_name, p2_data, metrics_list):
-    """İki oyuncuyu karşılaştırmalı radar grafiğinde çizer."""
     labels = [METRICS.get(m, {}).get('display', m).upper() for m in metrics_list]
     
-    # Maksimum değerlere göre normalizasyon (0-100 görselleştirme için)
     p1_vals, p2_vals = [], []
     for m in metrics_list:
         p1_m = p1_data[m].mean()
@@ -314,7 +291,6 @@ def plot_dual_radar(p1_name, p1_data, p2_name, p2_data, metrics_list):
         showlegend=True, height=480, margin=dict(l=60, r=60, t=40, b=40)
     )
     return fig
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LAYOUT HELPER
@@ -336,7 +312,6 @@ def _base_layout(title='', height=480, **kw):
     )
     d.update(kw)
     return d
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PERFORMANS GRAFİKLERİ
@@ -467,7 +442,6 @@ def plot_percentile_gauge(pct: float, label: str) -> go.Figure:
     fig.update_layout(height=180, margin=dict(l=15, r=15, t=35, b=15), paper_bgcolor=COLORS['WHITE'])
     return fig
 
-
 def plot_player_radar(player_data, team_data, radar_metrics=None):
     if radar_metrics is None: radar_metrics = RADAR_METRICS
     metrics = [m for m in radar_metrics if m in player_data.columns and player_data[m].notna().any()]
@@ -500,7 +474,6 @@ def plot_player_radar(player_data, team_data, radar_metrics=None):
     )
     return fig
 
-
 def plot_radar_comparison_multiple(players_dict: dict, team_data: pd.DataFrame, radar_metrics=None) -> go.Figure:
     if radar_metrics is None: radar_metrics = RADAR_METRICS
     metrics = [m for m in radar_metrics if m in team_data.columns and team_data[m].notna().any()]
@@ -531,7 +504,6 @@ def plot_radar_comparison_multiple(players_dict: dict, team_data: pd.DataFrame, 
         legend=dict(orientation='h', yanchor='bottom', y=-0.2, xanchor='center', x=0.5)
     )
     return fig
-
 
 def plot_day_comparison(camp_data: pd.DataFrame, day1, day2, metric: str) -> go.Figure:
     d1 = camp_data[camp_data['tarih'].dt.normalize() == pd.Timestamp(day1).normalize()].copy()
@@ -566,8 +538,7 @@ def plot_day_comparison(camp_data: pd.DataFrame, day1, day2, metric: str) -> go.
     fig.update_layout(**layout)
     return fig
 
-
-def plot_camp_comparison(camp1_data: pd.DataFrame, camp2_data: pd.DataFrame, metric: str, camp1_label: str = 'KAMP 1', camp2_label: str = 'KAMP 2') -> go.Figure:
+def plot_camp_comparison(camp1_data: pd.DataFrame, camp2_data: pd.DataFrame, metric: str, camp1_label: str = 'HAFTA 1', camp2_label: str = 'HAFTA 2') -> go.Figure:
     players = sorted(set(camp1_data['player_name']) | set(camp2_data['player_name']))
     v1_dict = camp1_data.groupby('player_name')[metric].mean().to_dict()
     v2_dict = camp2_data.groupby('player_name')[metric].mean().to_dict()
@@ -587,11 +558,10 @@ def plot_camp_comparison(camp1_data: pd.DataFrame, camp2_data: pd.DataFrame, met
         text=[f"{v:.1f}" if v else '' for v in v2], textposition='outside',
         textfont=dict(family=_FONT, size=10, weight='bold'),
     ))
-    layout = _base_layout(f"{m_info['display'].upper()} — KAMP KARŞILAŞTIRMASI", height=480)
+    layout = _base_layout(f"{m_info['display'].upper()} — HAFTA KARŞILAŞTIRMASI", height=480)
     layout.update(barmode='group', xaxis=dict(tickangle=-35), yaxis=dict(title=m_info['unit']))
     fig.update_layout(**layout)
     return fig
-
 
 def plot_daily_ranking(camp_data, tarih, metric, ascending=False):
     day = camp_data[camp_data['tarih'] == tarih].copy()
@@ -618,7 +588,6 @@ def plot_daily_ranking(camp_data, tarih, metric, ascending=False):
     layout.update(xaxis=dict(title=m_info['unit']), yaxis=dict(autorange="reversed"), showlegend=False)
     fig.update_layout(**layout)
     return fig
-
 
 def plot_scatter(data: pd.DataFrame, x_metric: str, y_metric: str, color_by: str = 'player_name', highlight_player: str = None, show_avg_lines: bool = True) -> go.Figure:
     df = data.dropna(subset=[x_metric, y_metric]).copy()
@@ -658,7 +627,6 @@ def plot_scatter(data: pd.DataFrame, x_metric: str, y_metric: str, color_by: str
     fig.update_layout(**layout)
     return fig
 
-
 def plot_player_comparison(p1_data, p2_data, metric, team_data=None, p1_name='OYUNCU 1', p2_name='OYUNCU 2'):
     names, values, colors = [p1_name.upper(), p2_name.upper()], [p1_data[metric].mean(), p2_data[metric].mean()], [COLORS['GREEN'], COLORS['BLACK']]
     if team_data is not None and not team_data.empty:
@@ -673,7 +641,6 @@ def plot_player_comparison(p1_data, p2_data, metric, team_data=None, p1_name='OY
     layout.update(showlegend=False, yaxis=dict(title=m_info['unit']))
     fig.update_layout(**layout)
     return fig
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PDF OLUŞTURUCU VE RAPOR HTML ŞABLONU
@@ -691,7 +658,7 @@ def generate_pdf_from_html(html_content: str):
     except ImportError:
         return None
 
-def generate_player_report_html(player_name: str, age_group: str, stats: dict, score_dict: dict, player_data: pd.DataFrame, team_data: pd.DataFrame, camp_name: str = "Kamp Performansı", photo_url: str = "", club_logo_url: str = "") -> str:
+def generate_player_report_html(player_name: str, age_group: str, stats: dict, score_dict: dict, player_data: pd.DataFrame, team_data: pd.DataFrame, camp_name: str = "Hafta Performansı", photo_url: str = "", club_logo_url: str = "") -> str:
     from datetime import datetime
     def pct_bar(pct):
         color = percentile_color(pct)
@@ -710,16 +677,15 @@ def generate_player_report_html(player_name: str, age_group: str, stats: dict, s
         tmax = team_data[m].dropna().max() if not team_data.empty else 0
         pct = score_dict.get(m, 50)
         
-        metric_rows += f'<tr><td style="padding:14px; font-weight:bold; color:#1F2937; border-bottom:1px solid #E5E7EB; text-transform:uppercase;">{mi["display"]}</td><td style="padding:14px; text-align:center; font-weight:bold; color:#E30A17; border-bottom:1px solid #E5E7EB; font-size:13px;">{pval:.1f} <span style="color:#9CA3AF; font-size:9px;">{mi["unit"]}</span></td><td style="padding:14px; text-align:center; color:#6B7280; font-weight:bold; border-bottom:1px solid #E5E7EB;">{tmin:.1f}</td><td style="padding:14px; text-align:center; color:#6B7280; font-weight:bold; border-bottom:1px solid #E5E7EB;">{tavg:.1f}</td><td style="padding:14px; text-align:center; color:#6B7280; font-weight:bold; border-bottom:1px solid #E5E7EB;">{tmax:.1f}</td><td style="padding:14px; border-bottom:1px solid #E5E7EB; width: 150px;">{pct_bar(pct)}</td></tr>'
+        metric_rows += f'<tr><td style="padding:14px; font-weight:bold; color:#1F2937; border-bottom:1px solid #E5E7EB; text-transform:uppercase;">{mi["display"]}</td><td style="padding:14px; text-align:center; font-weight:bold; color:#007A33; border-bottom:1px solid #E5E7EB; font-size:13px;">{pval:.1f} <span style="color:#9CA3AF; font-size:9px;">{mi["unit"]}</span></td><td style="padding:14px; text-align:center; color:#6B7280; font-weight:bold; border-bottom:1px solid #E5E7EB;">{tmin:.1f}</td><td style="padding:14px; text-align:center; color:#6B7280; font-weight:bold; border-bottom:1px solid #E5E7EB;">{tavg:.1f}</td><td style="padding:14px; text-align:center; color:#6B7280; font-weight:bold; border-bottom:1px solid #E5E7EB;">{tmax:.1f}</td><td style="padding:14px; border-bottom:1px solid #E5E7EB; width: 150px;">{pct_bar(pct)}</td></tr>'
 
-    return f"""<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><style>@page {{ size: A4 portrait; margin: 1.5cm; }} body {{ font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #111827; background-color: #FFFFFF; }} .header-table {{ width: 100%; background-color: #111827; border-left: 8px solid #E30A17; margin-bottom: 25px; border-radius: 4px; }} .header-td {{ padding: 25px 30px; }} .h-title {{ color: #FFFFFF; font-size: 32px; font-weight: bold; margin: 0; padding: 0; text-transform: uppercase; letter-spacing: 2px; }} .h-sub {{ color: #D1D5DB; font-size: 12px; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }} .h-top {{ color: #9CA3AF; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; font-weight: bold; }} .score-table {{ background-color: #1F2937; border: 3px solid {comp_color}; border-radius: 8px; text-align: center; }} .score-td {{ padding: 15px; }} .score-val {{ color: {comp_color}; font-size: 38px; font-weight: bold; line-height: 1; }} .score-lbl {{ color: #D1D5DB; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }} .section-title {{ font-size: 16px; font-weight: bold; color: #1F2937; border-bottom: 3px solid #E30A17; padding-bottom: 8px; margin-bottom: 20px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; }} .cards-table {{ width: 100%; margin-bottom: 30px; }} .card-td {{ background-color: #F9FAFB; padding: 15px 5px; text-align: center; border: 1px solid #E5E7EB; border-radius: 8px; }} .card-val {{ color: #E30A17; font-size: 24px; font-weight: bold; }} .card-lbl {{ color: #6B7280; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 6px; letter-spacing: 1px; }} .data-table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }} .data-table th {{ background-color: #F3F4F6; padding: 12px 12px; text-align: left; font-size: 10px; font-weight: bold; color: #4B5563; text-transform: uppercase; border-bottom: 2px solid #D1D5DB; letter-spacing: 0.5px; }} .data-table th.center {{ text-align: center; }} .footer {{ text-align: center; font-size: 11px; font-weight: bold; color: #9CA3AF; margin-top: 40px; padding-top: 15px; border-top: 1px solid #E5E7EB; letter-spacing: 0.5px; }}</style></head><body><table class="header-table" cellpadding="0" cellspacing="0"><tr><td width="15%" style="padding: 15px; text-align: center; vertical-align: middle;"><img src="{photo_url}" width="80" height="80" style="border: 3px solid white; border-radius: 8px; margin-bottom: 5px;"><br><img src="{club_logo_url}" width="35" height="35"></td><td class="header-td" width="55%" style="vertical-align: middle;"><div class="h-top">Rugby · ATLETİK PERFORMANS RAPORU</div><div class="h-title">{player_name}</div><div class="h-sub">{age_group} · {camp_name} · {datetime.now().strftime('%d.%m.%Y')}</div></td><td width="30%" align="right" style="padding: 20px; vertical-align: middle;"><table class="score-table" cellpadding="0" cellspacing="0" width="100%"><tr><td class="score-td"><div class="score-val">{composite:.0f}</div><div class="score-lbl">BİLEŞİK PERCENTILE</div></td></tr></table></td></tr></table><div class="section-title">GENEL İSTATİSTİKLER</div><table class="cards-table" cellpadding="0" cellspacing="12"><tr><td class="card-td" width="20%"><div class="card-val">{int(stats.get('camp_count',0))}</div><div class="card-lbl">KAMP SAYISI</div></td><td class="card-td" width="20%"><div class="card-val">{int(stats.get('session_count',0))}</div><div class="card-lbl">KAYITLI GÜN</div></td><td class="card-td" width="20%"><div class="card-val">{int(stats.get('training_count',0))}</div><div class="card-lbl">ANTRENMAN</div></td><td class="card-td" width="20%"><div class="card-val">{int(stats.get('match_count',0))}</div><div class="card-lbl">MAÇ GÜNÜ</div></td><td class="card-td" width="20%"><div class="card-val">{stats.get('max_speed',0):.1f}</div><div class="card-lbl">MAX KM/H</div></td></tr></table><div class="section-title">METRİK BAZLI ANALİZ (MİN / ORT / MAX)</div><table class="data-table"><thead><tr><th>METRİK (DEĞİŞKEN)</th><th class="center">OYUNCU</th><th class="center">TAKIM MİN</th><th class="center">TAKIM ORT.</th><th class="center">TAKIM MAX</th><th>ATLETİK PERFORMANS SKORLAMASI</th></tr></thead><tbody>{metric_rows}</tbody></table><div class="footer">Rugby Performans Sistemi · Genç Takımlar Atletik Performans Sistemi · © {datetime.now().year} TFF</div></body></html>"""
-
+    return f"""<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><style>@page {{ size: A4 portrait; margin: 1.5cm; }} body {{ font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #111827; background-color: #FFFFFF; }} .header-table {{ width: 100%; background-color: #111827; border-left: 8px solid #007A33; margin-bottom: 25px; border-radius: 4px; }} .header-td {{ padding: 25px 30px; }} .h-title {{ color: #FFFFFF; font-size: 32px; font-weight: bold; margin: 0; padding: 0; text-transform: uppercase; letter-spacing: 2px; }} .h-sub {{ color: #D1D5DB; font-size: 12px; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }} .h-top {{ color: #9CA3AF; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; font-weight: bold; }} .score-table {{ background-color: #1F2937; border: 3px solid {comp_color}; border-radius: 8px; text-align: center; }} .score-td {{ padding: 15px; }} .score-val {{ color: {comp_color}; font-size: 38px; font-weight: bold; line-height: 1; }} .score-lbl {{ color: #D1D5DB; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }} .section-title {{ font-size: 16px; font-weight: bold; color: #1F2937; border-bottom: 3px solid #007A33; padding-bottom: 8px; margin-bottom: 20px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; }} .cards-table {{ width: 100%; margin-bottom: 30px; }} .card-td {{ background-color: #F9FAFB; padding: 15px 5px; text-align: center; border: 1px solid #E5E7EB; border-radius: 8px; }} .card-val {{ color: #007A33; font-size: 24px; font-weight: bold; }} .card-lbl {{ color: #6B7280; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 6px; letter-spacing: 1px; }} .data-table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }} .data-table th {{ background-color: #F3F4F6; padding: 12px 12px; text-align: left; font-size: 10px; font-weight: bold; color: #4B5563; text-transform: uppercase; border-bottom: 2px solid #D1D5DB; letter-spacing: 0.5px; }} .data-table th.center {{ text-align: center; }} .footer {{ text-align: center; font-size: 11px; font-weight: bold; color: #9CA3AF; margin-top: 40px; padding-top: 15px; border-top: 1px solid #E5E7EB; letter-spacing: 0.5px; }}</style></head><body><table class="header-table" cellpadding="0" cellspacing="0"><tr><td width="15%" style="padding: 15px; text-align: center; vertical-align: middle;"><img src="{photo_url}" width="80" height="80" style="border: 3px solid white; border-radius: 8px; margin-bottom: 5px;"><br><img src="{club_logo_url}" width="35" height="35"></td><td class="header-td" width="55%" style="vertical-align: middle;"><div class="h-top">Futbol · ATLETİK PERFORMANS RAPORU</div><div class="h-title">{player_name}</div><div class="h-sub">{age_group} · {camp_name} · {datetime.now().strftime('%d.%m.%Y')}</div></td><td width="30%" align="right" style="padding: 20px; vertical-align: middle;"><table class="score-table" cellpadding="0" cellspacing="0" width="100%"><tr><td class="score-td"><div class="score-val">{composite:.0f}</div><div class="score-lbl">BİLEŞİK PERCENTILE</div></td></tr></table></td></tr></table><div class="section-title">GENEL İSTATİSTİKLER</div><table class="cards-table" cellpadding="0" cellspacing="12"><tr><td class="card-td" width="20%"><div class="card-val">{int(stats.get('week_count',0))}</div><div class="card-lbl">HAFTA SAYISI</div></td><td class="card-td" width="20%"><div class="card-val">{int(stats.get('session_count',0))}</div><div class="card-lbl">KAYITLI GÜN</div></td><td class="card-td" width="20%"><div class="card-val">{int(stats.get('training_count',0))}</div><div class="card-lbl">ANTRENMAN</div></td><td class="card-td" width="20%"><div class="card-val">{int(stats.get('match_count',0))}</div><div class="card-lbl">MAÇ GÜNÜ</div></td><td class="card-td" width="20%"><div class="card-val">{stats.get('max_speed',0):.1f}</div><div class="card-lbl">MAX KM/H</div></td></tr></table><div class="section-title">METRİK BAZLI ANALİZ (MİN / ORT / MAX)</div><table class="data-table"><thead><tr><th>METRİK (DEĞİŞKEN)</th><th class="center">OYUNCU</th><th class="center">TAKIM MİN</th><th class="center">TAKIM ORT.</th><th class="center">TAKIM MAX</th><th>ATLETİK PERFORMANS SKORLAMASI</th></tr></thead><tbody>{metric_rows}</tbody></table><div class="footer">Bursaspor Veri Merkezi · © {datetime.now().year}</div></body></html>"""
 
 # ─────────────────────────────────────────────────────────────────────────────
 # EXPORT BUTONLARI
 # ─────────────────────────────────────────────────────────────────────────────
 
-def render_export_buttons(fig=None, df=None, html_report=None, key_prefix='export', filename='tff'):
+def render_export_buttons(fig=None, df=None, html_report=None, key_prefix='export', filename='bursaspor'):
     import streamlit as st
     
     safe_filename = re.sub(r'[^\w\s-]', '', filename).strip()
@@ -756,30 +722,21 @@ def render_export_buttons(fig=None, df=None, html_report=None, key_prefix='expor
             except ImportError:
                 st.button("❌ PDF HATASI", disabled=True, key=f"{key_prefix}_pdf_err_2", help="xhtml2pdf paketi eksik.", width='stretch')
 
-                # utils.py dosyasının en altına eklenecek kısım
-
 def calculate_per90_stats(df, metrics_to_normalize):
     """
     Verileri 90 dakikaya normalize eder ve Yoğunluk İndekslerini hesaplar.
     """
     d = df.copy()
-    # 0 dakikaları ele (Division by zero hatası için)
     d = d[d['minutes'] > 0].copy()
     
-    # 1. Per 90 Normalizasyonu
     for m in metrics_to_normalize:
         if m in d.columns:
             d[f'{m}_p90'] = (d[m] / d['minutes']) * 90
 
-    # 2. Atletik Verimlilik İndeksi (AEI): Mesafe / Player Load
-    # Oyuncu harcadığı her birim yükte ne kadar mesafe kat ediyor?
     if 'total_distance' in d.columns and 'player_load' in d.columns:
         d['verimlilik_indeksi'] = d['total_distance'] / d['player_load']
 
-    # 3. Yoğunluk Skoru (Z-Score tabanlı)
-    # Patlayıcılık ve Yoğunluğu harmanlayıp 0-100 arası bir puan verir
     if 'dist_25_plus_p90' in d.columns and 'total_distance_p90' in d.columns:
-        # Basit bir verimlilik ağırlıklandırması
         d['atletik_puan'] = (
             (d['dist_25_plus_p90'] / d['dist_25_plus_p90'].max() * 0.4) +
             (d['total_distance_p90'] / d['total_distance_p90'].max() * 0.3) +
@@ -790,13 +747,13 @@ def calculate_per90_stats(df, metrics_to_normalize):
 
 def get_hierarchical_top_players(df):
     """
-    Hiyerarşik olarak (Seans, Kamp, Genel) en iyi oyuncuları belirler.
+    Hiyerarşik olarak (Seans, Hafta, Genel) en iyi oyuncuları belirler.
     """
     per90_df = calculate_per90_stats(df, ['total_distance', 'dist_25_plus', 'player_load'])
     
     hierarchy = {
-        "GÜNÜN_KRALI": per90_df.sort_values('atletik_puan', ascending=False).iloc[0].to_dict(),
-        "KAMPIN_MOTORU": per90_df.groupby('player_name')['atletik_puan'].mean().sort_values(ascending=False).head(3).to_dict(),
-        "ISTIKRAR_ABIDESI": (1 / (per90_df.groupby('player_name')['atletik_puan'].std() / per90_df.groupby('player_name')['atletik_puan'].mean())).sort_values(ascending=False).head(3).to_dict()
+        "GÜNÜN_KRALI": per90_df.sort_values('atletik_puan', ascending=False).iloc[0].to_dict() if not per90_df.empty else {},
+        "HAFTANIN_MOTORU": per90_df.groupby('player_name')['atletik_puan'].mean().sort_values(ascending=False).head(3).to_dict() if not per90_df.empty else {},
+        "ISTIKRAR_ABIDESI": (1 / (per90_df.groupby('player_name')['atletik_puan'].std() / per90_df.groupby('player_name')['atletik_puan'].mean())).sort_values(ascending=False).head(3).to_dict() if len(per90_df) > 1 else {}
     }
     return hierarchy
