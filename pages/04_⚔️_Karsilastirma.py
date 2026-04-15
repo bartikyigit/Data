@@ -16,7 +16,7 @@ page_header("⚔️", "KARŞILAŞTIRMA VE FARK ANALİZİ",
             "H2H (Kafa Kafaya) · Çapraz Yaş Grubu · Kamp Karşılaştırma · Çoklu Radar")
 
 # AÇIKLAMA: Analitik kullanım rehberi
-info_box("Bu modül, oyuncuları birbirleriyle (H2H), farklı kampların performanslarını kendi aralarında ve oyuncuların çoklu radar profillerini kıyaslamak için kullanılır. 'Çapraz Yaş Grubu' özelliğiyle farklı kategorilerdeki (Örn: 71U vs 91U) oyuncuları çarpıştırabilir, aralarındaki fark yüzdelerini görebilirsiniz.")
+info_box("Bu modül, oyuncuları birbirleriyle (H2H), farklı kampların performanslarını kendi aralarında ve oyuncuların çoklu radar profillerini kıyaslamak için kullanılır. 'Çapraz Yaş Grubu' özelliğiyle farklı kategorilerdeki (Örn: U17 vs U19) oyuncuları çarpıştırabilir, aralarındaki fark yüzdelerini görebilirsiniz.")
 
 # ── Ana Kontrol Paneli (Dakika Filtreleri) ───────────────────────────────────
 with st.expander("⚙️ DAKİKA VE VERİ FİLTRELERİ (Gelişmiş)", expanded=False):

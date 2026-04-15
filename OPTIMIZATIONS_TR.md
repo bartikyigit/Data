@@ -278,14 +278,14 @@ def get_database_connection():
 ```python
 # BEFORE: Multiple copies of data
 def process_data(df):
-    filtered = df[df['age_group'] == '91U'].copy()  # Copy 1
+    filtered = df[df['age_group'] == 'U19'].copy()  # Copy 1
     sorted_data = filtered.sort_values('date').copy()  # Copy 2
     final = sorted_data[['name', 'stats']].copy()  # Copy 3
     return final
 
 # AFTER: Single pass, no unnecessary copies
 def process_data(df):
-    return (df[df['age_group'] == '91U']
+    return (df[df['age_group'] == 'U19']
               .sort_values('date')
               [['name', 'stats']])  # Chained operations
 ```

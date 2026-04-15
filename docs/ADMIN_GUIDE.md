@@ -28,7 +28,7 @@
 2. "Yeni Kamp" tıkla
 3. Bilgileri gir:
    - Adı: "Ocak 2026 Kampı"
-   - Yaş Grubu: 91U
+   - Yaş Grubu: U19
    - Başlangıç: 01.02.2026
    - Bitiş: 15.02.2026
    - Konum: İstanbul

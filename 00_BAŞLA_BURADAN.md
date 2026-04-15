@@ -111,8 +111,8 @@ E�er uygulamayı gördüysen, tebrikler! Şimdi veri yüklemeye başlayabilirs
 ### Veri Yükleme:
 
 1. **Sol Sidebar'da** → "📂 Veri Yönetimi" bölümü
-2. **Excel dosyası seç** (91U_ŞUBAT.xlsx gibi)
-3. **Yaş grubu seç** (61U, 71U, 91U, _)
+2. **Excel dosyası seç** (U19_ŞUBAT.xlsx gibi)
+3. **Yaş grubu seç** (U16, U17, U19, _)
 4. **"✅ Veritabanına Aktar" butonuna tıkla**
 
 ---

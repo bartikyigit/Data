@@ -67,13 +67,13 @@ Aşağıdaki sütunları içermelidir:
 ```
 | tarih      | player_name    | age_group | tip      | minutes | total_distance | metrage | smax_kmh | dist_25_plus | player_load | amp | hsr | acc_over_3 | dec_under_minus_3 | high_accel_count | quick_change_of_direction | camp_id |
 |-----------|----------------|-----------|----------|---------|---|---|---|---|---|---|---|---|---|---|---|
-| 2024-01-15 | Ahmet YILMAZ   | 91U       | TRAINING | 90      | 9500 | 42 | 28.5 | 2100 | 450 | 180 | 15 | 8 | 5 | 12 | 3 | 1 |
+| 2024-01-15 | Ahmet YILMAZ   | U19       | TRAINING | 90      | 9500 | 42 | 28.5 | 2100 | 450 | 180 | 15 | 8 | 5 | 12 | 3 | 1 |
 ```
 
 ### Yükleme İşlemi
 1. Yan menüde "📂 VERİ YÜKLE" tıkla
 2. Excel dosyası seç
-3. Yaş grubunu belirle (71U, 91U, U20, _)
+3. Yaş grubunu belirle (U17, U19, U20, _)
 4. "✅ VERİTABANıNA AKTAR" tıkla
 
 ## 🔑 ADMIN PANEL ERİŞİMİ

@@ -251,7 +251,7 @@ render_performance_card(
     player_name='Ali Yılmaz',
     icon='⚽',
     stats=stats,
-    camp_name='71U Kamp',
+    camp_name='U17 Kamp',
     score=75.0
 )
 

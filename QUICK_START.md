@@ -110,7 +110,7 @@ http://localhost:8501
 ### 1️⃣ Veri Yükle
 1. Sol panelden "📂 Veri Yükle" tıkla
 2. Excel dosyası seç (Training_Match_Data sheet'i içermeli)
-3. Yaş grubu seç (61U, 71U, 91U, _)
+3. Yaş grubu seç (U16, U17, U19, _)
 4. "Veritabanına Aktar" tıkla
 
 ### 2️⃣ İlk Analiz

@@ -95,7 +95,7 @@ streamlit run app.py
 ## 7️⃣ Excel Dosyaları Yükle
 
 1. Sidebar'da "📂 Veri Yönetimi" bölümünde
-2. Excel dosyasını yükle (91U_ŞUBAT.xlsx, 71U_EYLÜL.xlsx vb.)
+2. Excel dosyasını yükle (U19_ŞUBAT.xlsx, U17_EYLÜL.xlsx vb.)
 3. Yaş grubunu seç
 4. "✅ Veritabanına Aktar" butonuna tıkla
 
@@ -132,7 +132,7 @@ tff_performance_system/
 
 ### Veri Yükle
 1. Excel dosyasını sidebar'dan yükle
-2. 91U / 71U / 61U / _ seç
+2. U19 / U17 / U16 / _ seç
 3. "Veritabanına Aktar" tıkla
 
 ### Ana Sayfada

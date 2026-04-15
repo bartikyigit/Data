@@ -87,7 +87,7 @@ Tarayıcıda otomatik olarak `http://localhost:8501` açılacak.
 
 ### 1. VERİ YÜKLEME
 - Yan menüden Excel dosyası seçin
-- Yaş grubunu belirtin (71U, 91U, U20, _)
+- Yaş grubunu belirtin (U17, U19, U20, _)
 - "VERİTABANıNA AKTAR" butonu ile yükleyin
 
 ### 2. OYUNCU ANALİZİ
