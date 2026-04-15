@@ -20,7 +20,7 @@ d_load = METRICS.get('player_load', {}).get('display', 'Player Load').upper()
 d_smax = METRICS.get('smax_kmh', {}).get('display', 'Max Hız').upper()
 d_tdist = METRICS.get('total_distance', {}).get('display', 'Toplam Mesafe').upper()
 
-# ── MODEL METODOLOJİSİ (Ayrıntılı İstatistiksel Açıklama) ──────────────────────
+# ── MODEL METODOLOJİSİ ────────────────────────────────────────────────────────
 with st.expander("📌 BURSASPOR İMPACT (ETKİ) MODELİ: İSTATİSTİKSEL METODOLOJİ VE HESAPLAMA MANTIĞI", expanded=False):
     st.markdown(f"""
     Bu modül, birbirinden farklı birimlere sahip (metre, adet, km/h, arbitrary unit) karmaşık atletik verileri tek bir potada eriterek, oyuncunun takıma göre "Fiziksel Etkisini" objektif olarak hesaplar. Hesaplama 5 temel adımdan oluşur:
@@ -28,37 +28,26 @@ with st.expander("📌 BURSASPOR İMPACT (ETKİ) MODELİ: İSTATİSTİKSEL METOD
     **Adım 1: Ekolojik Geçerlilik ve Normalizasyon (Intensity vs. Volume)**
     Saha içindeki adaletsizliği önlemek için ilk adım veriyi "Şiddete" dönüştürmektir. 90 dakika oynayan bir stoperin 10.000 metre koşması ile, 45 dakika oynayan bir kanat oyuncusunun 6.000 metre koşması ham veride kıyaslanamaz.
     Bu yüzden model, "Max Sürat (Peak)" verisi hariç tüm kümülatif verileri oyuncunun oynadığı dakikaya bölerek **Birim Dakika (Per Minute / pm)** verisine dönüştürür.
-    * **Hesaplama:** `{d_tdist} / Oynanan Dakika`
-    * **Sonuç:** Hacim (Volume), Şiddet'e (Intensity) dönüştürülerek herkes eşit süre oynamış gibi adil bir zemin yaratılır.
 
     **Adım 2: Z-Skoru ile Standardizasyon (Elmalarla Armutları Toplamak)**
-    En büyük problem: Sürat (km/h) ile Mesafeyi (metre) nasıl toplayıp tek bir puan elde edeceğiz? İstatistik bilimi burada devreye girer. Tüm veriler **Z-Skoruna** (Standart Normal Dağılım) dönüştürülür.
+    En büyük problem: Sürat (km/h) ile Mesafeyi (metre) nasıl toplayıp tek bir puan elde edeceğiz? Tüm veriler **Z-Skoruna** (Standart Normal Dağılım) dönüştürülür.
     Z-Skoru, bir oyuncunun değerinin, o günkü takım ortalamasından kaç standart sapma ($\\sigma$) uzakta olduğunu ölçer.
-    * **Formül:** $$Z = \\frac{{X - \\mu}}{{\\sigma}}$$ 
-    *(X: Oyuncu Değeri, $\\mu$: Takım Ortalaması, $\\sigma$: Standart Sapma)*
-    * **Örnek:** Eğer oyuncunun Z-Skoru $+1.5$ ise, bu onun takım ortalamasının oldukça üzerinde (Elit bölgede) olduğunu kanıtlar. Artık tüm metrikler $+3$ ile $-3$ arasında standart bir formata gelmiştir ve toplanabilirler.
 
     **Adım 3: Futbolun Fiziksel Doğasına Göre Ağırlıklandırma (Weighting)**
-    Modern futbolda her metrik aynı değere sahip değildir. "Jogging" (düşük tempolu koşu) ile maçı kazandıran "Sprint" eylemi eşit puanlanamaz. Bu yüzden elde edilen Z-Skorları, spor bilimi literatürüne uygun olarak şu ağırlıklarla çarpılır:
+    Modern futbolda her metrik aynı değere sahip değildir. Elde edilen Z-Skorları, spor bilimi literatürüne uygun olarak şu ağırlıklarla çarpılır:
     * **%25 - {d_dist_25}:** Modern oyunun en belirleyici faktörü (Sprint).
-    * **%20 - Patlayıcı Aksiyon:** Yüksek şiddetli ivmelenme ($>3 m/s^2$) ve yavaşlamaların ($<-3 m/s^2$) ortalaması. Kas hasarını ve çevikliği temsil eder.
+    * **%20 - Patlayıcı Aksiyon:** Yüksek şiddetli ivmelenme ($>3 m/s^2$) ve yavaşlamaların ($<-3 m/s^2$) ortalaması.
     * **%20 - {d_load}:** İç ivmeölçerlerden gelen 3 eksenli stres verisi.
     * **%15 - {d_tdist}:** Genel motor kapasite.
     * **%10 - {d_smax}:** Oyuncunun ulaşabildiği en yüksek tavan sürat.
     * **%10 - Metabolik Güç:** AMP ve Metrage verilerinin harmanlandığı, enerji harcama kapasitesi.
 
     **Adım 4: Skor Ölçekleme (0-100 Scale)**
-    Ağırlıklandırılmış Z-Skorlarının toplamı (genellikle $-2$ ile $+2$ arası çıkar), teknik heyetin ve antrenörlerin kolayca anlayabilmesi için **0 ile 100 arasında** bir puana (Impact Score) dönüştürülür.
-    * **Hesaplama:** $$Impact\\_Score = \\min\\left(100, \\max\\left(0, \\frac{{\\text{{Toplam\\_Z}} + 2.5}}{{5}} \\times 100\\right)\\right)$$
-    * **İstatistiksel Durum Etiketleri:** * $\\geq 80$: **Elit (+1.5 SD)** -> İnanılmaz bir fiziksel performans.
-        * $60 - 79$: **Ort. Üstü (+0.5 SD)** -> Takımı yukarı çeken performans.
-        * $40 - 59$: **Ortalama Standardı** -> Takıma ayak uyduran performans.
-        * $< 40$: **Gelişim Bölgesi** -> Bireysel yükleme gerektiren yetersiz performans.
-
-    **Adım 5: Boylamsal Gelişim Analizi (Longitudinal Development)**
-    "Geçmiş Haftalara Göre Gelişim" sekmesi, oyuncunun mevcut hafta verilerini, veritabanındaki **tüm geçmiş hafta ortalamaları** ile kıyaslar.
-    * **Formül:** $$Gelişim\\ \\% = \\left( \\frac{{\\text{{Güncel Hafta Ort.}} - \\text{{Geçmiş Haftalar Ort.}}}}{{\\text{{Geçmiş Haftalar Ort.}}}} \\right) \\times 100$$
-    Bu sayede antrenörler "Bu oyuncu geçen haftalara göre %15 daha fazla sprint üretiyor" yorumunu verilere dayanarak net bir şekilde yapabilir.
+    Ağırlıklandırılmış Z-Skorlarının toplamı (genellikle $-2$ ile $+2$ arası çıkar), teknik heyetin kolayca anlayabilmesi için **0 ile 100 arasında** bir puana dönüştürülür.
+    * $\\geq 80$: **Elit (+1.5 SD)** -> İnanılmaz bir fiziksel performans.
+    * $60 - 79$: **Ort. Üstü (+0.5 SD)** -> Takımı yukarı çeken performans.
+    * $40 - 59$: **Ortalama Standardı** -> Takıma ayak uyduran performans.
+    * $< 40$: **Gelişim Bölgesi** -> Bireysel yükleme gerektiren yetersiz performans.
     """, unsafe_allow_html=True)
 
 # ── VERİ FİLTRELEME VE ÇEKME KATI ─────────────────────────────────────────────
@@ -109,11 +98,19 @@ if camp_data is None or camp_data.empty:
     st.warning("Hesaplanabilir geçerli veri bulunamadı (dakikası 0 olan veya filtrelenmiş veriler).")
     st.stop()
 
-# Pandas index hatası için koruma kalkanı
 if 'tarih' not in camp_data.columns:
     camp_data = camp_data.reset_index()
 
 st.divider()
+
+# HATA GİDERİCİ KORUMA KALKANI (PM sütunları yoksa normallerine geçer)
+pm_sprint = 'dist_25_plus_pm' if 'dist_25_plus_pm' in camp_data.columns else 'dist_25_plus'
+pm_load = 'player_load_pm' if 'player_load_pm' in camp_data.columns else 'player_load'
+pm_dist = 'total_distance_pm' if 'total_distance_pm' in camp_data.columns else 'total_distance'
+
+unit_sprint = "(m/dk)" if pm_sprint.endswith('_pm') else "(m)"
+unit_load = "(/dk)" if pm_load.endswith('_pm') else ""
+unit_dist = "(m/dk)" if pm_dist.endswith('_pm') else "(m)"
 
 # ── ANALİZ SEKMELERİ (TABS) ───────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
@@ -141,13 +138,17 @@ with tab1:
         
         with col_a:
             section_title("TAKIM SIRALAMASI TABLOSU", "📋")
-            display_cols = ['player_name', 'impact_score', 'status_tag', 'dist_25_plus', 'player_load', 'smax_kmh']
+            
+            # Sütun koruması: Tabloda hata vermemesi için
+            day_sprint = 'dist_25_plus' if 'dist_25_plus' in day_data.columns else pm_sprint
+            day_load = 'player_load' if 'player_load' in day_data.columns else pm_load
+            
+            display_cols = ['player_name', 'impact_score', 'status_tag', day_sprint, day_load, 'smax_kmh']
             show_df = day_data[display_cols].copy()
             
             show_df.columns = ['OYUNCU', 'IMPACT SKOR', 'İSTATİSTİKSEL DURUM', d_dist_25, d_load, d_smax]
             show_df.index = np.arange(1, len(show_df) + 1)
             
-            # Renk skalası Bursaspor Yeşiline (Greens) ayarlandı, eksik veriler gizlendi
             st.dataframe(show_df.style.format({
                             'IMPACT SKOR': '{:.1f}', 
                             d_dist_25: '{:.0f}', 
@@ -168,7 +169,7 @@ with tab1:
                 orientation='h',
                 marker=dict(
                     color=day_data['impact_score'],
-                    colorscale='Greens', # Bursaspor Teması
+                    colorscale='Greens',
                     cmin=30, cmax=90,
                     line=dict(color='rgba(0,0,0,0.1)', width=1)
                 ),
@@ -189,27 +190,28 @@ with tab1:
 # ── TAB 2: HAFTA LİDERLERİ (Genel Değerlendirme) ──────────────────────────────
 with tab2:
     section_title("HAFTA GENEL ORTALAMASI VE LİDERLİK TABLOSU", "🏆")
-    st.markdown("<p style='color: gray; font-size: 13px;'>Hafta boyunca tüm oyuncuların günlük Impact skorlarının ve dakikaya oranlanmış (m/min) değişkenlerinin genel aritmetik ortalamasıdır.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: gray; font-size: 13px;'>Hafta boyunca tüm oyuncuların günlük Impact skorlarının ve değişkenlerinin genel aritmetik ortalamasıdır.</p>", unsafe_allow_html=True)
     
+    # HATA ÇÖZÜMÜ: Dinamik pm sütunları kullanılarak agg (gruplama) yapılır.
     camp_impact = camp_data.groupby('player_name').agg(
         avg_impact=('impact_score', 'mean'),
-        avg_high_speed=('dist_25_plus_pm', 'mean'),
-        avg_load=('player_load_pm', 'mean'),
+        avg_high_speed=(pm_sprint, 'mean'),
+        avg_load=(pm_load, 'mean'),
         max_speed=('smax_kmh', 'max'),
         session_count=('tarih', 'count')
     ).reset_index().sort_values('avg_impact', ascending=False)
     
     camp_impact.index = np.arange(1, len(camp_impact) + 1)
-    camp_impact.columns = ['OYUNCU', 'HAFTA ORT. İMPACT', f'ORT. {d_dist_25} (m/dk)', f'ORT. {d_load} (/dk)', f'HAFTA {d_smax}', 'KATILDIĞI SEANS']
+    camp_impact.columns = ['OYUNCU', 'HAFTA ORT. İMPACT', f'ORT. {d_dist_25} {unit_sprint}', f'ORT. {d_load} {unit_load}', f'HAFTA {d_smax}', 'KATILDIĞI SEANS']
     
     st.dataframe(
         camp_impact.style.format({
             'HAFTA ORT. İMPACT': '{:.1f}',
-            f'ORT. {d_dist_25} (m/dk)': '{:.2f}',
-            f'ORT. {d_load} (/dk)': '{:.2f}',
+            f'ORT. {d_dist_25} {unit_sprint}': '{:.2f}',
+            f'ORT. {d_load} {unit_load}': '{:.2f}',
             f'HAFTA {d_smax}': '{:.1f}'
         }).background_gradient(cmap='Greys', subset=['HAFTA ORT. İMPACT'], vmin=40, vmax=80)\
-          .highlight_max(subset=[f'HAFTA {d_smax}'], color='#dcfce7'), # Maksimum hız için hafif Bursaspor yeşili
+          .highlight_max(subset=[f'HAFTA {d_smax}'], color='#dcfce7'),
         use_container_width=True, height=650
     )
     
@@ -235,7 +237,7 @@ with tab3:
             historical_processed = historical_processed.reset_index()
             
         if historical_processed.empty or sel_player not in historical_processed['player_name'].values:
-             st.warning(f"⚠️ {sel_player.upper()} isimli oyuncunun seçilen tarihten daha eski bir kaydı bulunmuyor (Sisteme ilk kez verisi girilmiş olabilir). Gelişim oranı hesaplanamadı.")
+             st.warning(f"⚠️ {sel_player.upper()} isimli oyuncunun seçilen tarihten daha eski bir kaydı bulunmuyor. Gelişim oranı hesaplanamadı.")
         else:
             dev_stats = calculate_development_stats(camp_data, historical_processed)
             
@@ -243,11 +245,13 @@ with tab3:
                 player_dev = dev_stats.loc[sel_player]
                 
                 cols = st.columns(4)
+                
+                # Dinamik PM korumasıyla sözlük (Dict) oluşturuluyor
                 metrics_dict = {
                     'impact_score': 'İMPACT SKOR DEĞİŞİMİ',
-                    'dist_25_plus_pm': f'{d_dist_25} (m/dk)',
-                    'player_load_pm': f'{d_load} (/dk)',
-                    'total_distance_pm': f'{d_tdist} (m/dk)'
+                    pm_sprint: f'{d_dist_25} {unit_sprint}',
+                    pm_load: f'{d_load} {unit_load}',
+                    pm_dist: f'{d_tdist} {unit_dist}'
                 }
                 
                 for idx, (key, label) in enumerate(metrics_dict.items()):
@@ -286,18 +290,16 @@ with tab4:
         
         fig = go.Figure()
         
-        # Arka plan alan doldurması (Hafif yeşil)
         fig.add_trace(go.Scatter(
             x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
             mode='lines',
             fill='tozeroy',
-            fillcolor='rgba(0,122,51,0.05)', # Bursaspor Yeşil gradyan
+            fillcolor='rgba(0,122,51,0.05)', 
             line=dict(width=0),
             showlegend=False,
             hoverinfo='skip'
         ))
         
-        # Ana Çizgi
         fig.add_trace(go.Scatter(
             x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
             mode='lines+markers',
