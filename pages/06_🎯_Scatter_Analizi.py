@@ -103,7 +103,7 @@ x_unit, y_unit = METRICS.get(x_metric, {}).get('unit', ''), METRICS.get(y_metric
 fig = go.Figure()
 
 if color_by == "Seans Tipi Bazlı":
-    for tip, clr, sym in [('TRAINING', COLORS['BLACK'], 'circle'), ('MATCH', COLORS['RED'], 'hexagram')]:
+    for tip, clr, sym in [('TRAINING', COLORS['BLACK'], 'circle'), ('MATCH', COLORS['GREEN'], 'hexagram')]:
         df_tip = plot_data[plot_data['tip'].str.upper().str.contains(tip)]
         if df_tip.empty: continue
         text_list = [name.upper() if name in show_labels_for else "" for name in df_tip['player_name']]
@@ -172,7 +172,7 @@ if len(show_labels_for) == 1:
                 labels = [METRICS.get(m,{}).get('display',m).upper() for m in radar_m]
                 vals = [p_score.get(m, 50) for m in radar_m]
                 fig_r = go.Figure()
-                fig_r.add_trace(go.Scatterpolar(r=vals + [vals[0]], theta=labels + [labels[0]], fill='toself', name="Oyuncu", line_color=COLORS['RED']))
+                fig_r.add_trace(go.Scatterpolar(r=vals + [vals[0]], theta=labels + [labels[0]], fill='toself', name="Oyuncu", line_color=COLORS['GREEN']))
                 fig_r.add_trace(go.Scatterpolar(r=[50]*len(vals) + [50], theta=labels + [labels[0]], mode='lines', name="Takım Medyanı", line=dict(color=COLORS['GRAY_500'], dash='dash')))
                 fig_r.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 110])), height=400, title="<b>ATLETİK GAP ANALİZİ</b>", margin=dict(t=50, b=20))
                 st.plotly_chart(fig_r, use_container_width=True)

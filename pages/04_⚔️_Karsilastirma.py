@@ -119,7 +119,7 @@ try:
         L, M, R = st.columns([5, 1, 5])
         def _player_box(name, age, color, score, img_url):
             c = percentile_color(score.get('composite', 50))
-            bg = '#fff0f0' if color == COLORS['RED'] else '#f5f5f5'
+            bg = '#fff0f0' if color == COLORS['GREEN'] else '#f5f5f5'
             return f"""
             <div style="background:linear-gradient(135deg,{bg},white); border:2px solid {color}; border-radius:16px; padding:20px; text-align:center; position:relative; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                 <img src="{img_url}" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid {color}; margin-bottom:10px; background:white;">
@@ -131,7 +131,7 @@ try:
             </div>"""
 
         with L:
-            st.markdown(_player_box(p1, age1, COLORS['RED'], s1, p1_img), unsafe_allow_html=True)
+            st.markdown(_player_box(p1, age1, COLORS['GREEN'], s1, p1_img), unsafe_allow_html=True)
             st.write("")
             c_L1, c_L2 = st.columns(2)
             with c_L1: st.markdown(f"<div class='metric-card' style='padding:10px;'><div class='sc-label'>GEÇERLİ SEANS</div><div class='sc-val' style='font-size:22px;'>{len(p1d)}</div></div>", unsafe_allow_html=True)
@@ -162,7 +162,7 @@ try:
         fig_pct = go.Figure()
         fig_pct.add_trace(go.Bar(
             name=p1.upper(), x=labels, y=v1,
-            marker=dict(color=COLORS['RED'], opacity=0.9),
+            marker=dict(color=COLORS['GREEN'], opacity=0.9),
             text=[f"%{v:.0f}" for v in v1], textposition='outside',
             textfont=dict(family='DM Sans', size=11, weight='bold'),
         ))
@@ -275,8 +275,8 @@ try:
         kk1, kk2 = st.columns(2)
         with kk1:
             st.markdown(f"""
-            <div style="background:linear-gradient(135deg,#fff0f0,white); border:2px solid {COLORS['RED']};border-radius:16px; padding:25px;text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-                <div style="font-family:'Bebas Neue',sans-serif;font-size:26px; letter-spacing:2px;color:{COLORS['RED']};">
+            <div style="background:linear-gradient(135deg,#fff0f0,white); border:2px solid {COLORS['GREEN']};border-radius:16px; padding:25px;text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:26px; letter-spacing:2px;color:{COLORS['GREEN']};">
                     🔴 {camp1_name.upper()}
                 </div>
                 <div style="font-size:14px;color:{COLORS['GRAY_700']};margin-top:10px; font-weight:bold;">

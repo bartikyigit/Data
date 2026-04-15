@@ -91,7 +91,7 @@ if sim_results is not None and not sim_results.empty:
             for idx, row in top_n.iterrows():
                 with st.container():
                     st.markdown(f"""
-                    <div style='background:white; padding:15px; border-radius:12px; border-left:6px solid {COLORS['RED']}; box-shadow: 0 3px 6px rgba(0,0,0,0.05); margin-bottom:12px;'>
+                    <div style='background:white; padding:15px; border-radius:12px; border-left:6px solid {COLORS['GREEN']}; box-shadow: 0 3px 6px rgba(0,0,0,0.05); margin-bottom:12px;'>
                         <div style='display:flex; justify-content:space-between; align-items:center;'>
                             <div style='font-family: Bebas Neue; font-size:18px; color:{COLORS['GRAY_900']}'>{row['OYUNCU']}</div>
                             <span style='background:#F3F4F6; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:bold; color:{COLORS['GRAY_600']}'>{row['age_group']}</span>

@@ -240,7 +240,7 @@ with tab3:
                     if pd.isna(change):
                          color, arrow, val_str = COLORS['GRAY_500'], "▬", "Veri Yok"
                     else:
-                        color = COLORS['RED'] if change < 0 else COLORS['SUCCESS'] if change > 0 else COLORS['GRAY_500']
+                        color = COLORS['GREEN'] if change < 0 else COLORS['SUCCESS'] if change > 0 else COLORS['GRAY_500']
                         arrow = "▼" if change < 0 else "▲" if change > 0 else "▬"
                         val_str = f"{arrow} {abs(change):.1f}%"
                     
@@ -273,8 +273,8 @@ with tab4:
             x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
             mode='lines+markers',
             name='Impact Score',
-            line=dict(color=COLORS['RED'], width=3, shape='spline'),
-            marker=dict(size=10, color='white', line=dict(color=COLORS['RED'], width=2))
+            line=dict(color=COLORS['GREEN'], width=3, shape='spline'),
+            marker=dict(size=10, color='white', line=dict(color=COLORS['GREEN'], width=2))
         ))
         
         mean_impact = daily_impact['impact_score'].mean()

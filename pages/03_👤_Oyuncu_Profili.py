@@ -232,7 +232,7 @@ with tab2:
                 y=main_player[rank_metric],
                 mode='markers',
                 name=selected_player.upper(),
-                marker=dict(color=COLORS['RED'], size=18, symbol='star-diamond', line=dict(width=1.5, color='white')),
+                marker=dict(color=COLORS['GREEN'], size=18, symbol='star-diamond', line=dict(width=1.5, color='white')),
                 hovertemplate=f"<b>{selected_player.upper()}</b><br>Tarih: %{{x}}<br>Değer: %{{y}}<extra></extra>"
             ))
             
@@ -340,7 +340,7 @@ with tab3:
                 x=[p_avg],
                 y=[m_name],
                 mode='markers',
-                marker=dict(color=COLORS['RED'], size=20, symbol='circle', line=dict(color='white', width=2)),
+                marker=dict(color=COLORS['GREEN'], size=20, symbol='circle', line=dict(color='white', width=2)),
                 name='Ortalama',
                 hovertemplate=f"<b>{m_name}</b><br>Min: {p_min:.1f}<br>Ort: {p_avg:.1f}<br>Max: {p_max:.1f}<extra></extra>",
                 showlegend=False

@@ -92,10 +92,10 @@ ref_display = METRICS.get(ref_metric, {}).get('display', ref_metric).upper()
 
 with h_cols[0]:
     st.markdown(f"""
-    <div style='background:white; padding:20px; border-radius:15px; border-top:5px solid {COLORS['RED']}; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 100%;'>
+    <div style='background:white; padding:20px; border-radius:15px; border-top:5px solid {COLORS['GREEN']}; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 100%;'>
         <div style='font-size:12px; color:#6B7280; font-weight:bold;'>⚡ ANLIK PATLAMA (ZİRVE SEANS)</div>
         <div style='font-family:Bebas Neue; font-size:26px; margin-top:5px; color:{COLORS['GRAY_900']};'>{best_session['player_name'].upper()}</div>
-        <div style='font-size:16px; color:{COLORS['RED']}; font-weight:bold;'>{best_session[ref_pm]:.1f} {ref_unit}/min <span style='font-size:12px; color:#9CA3AF; font-weight:normal;'>(Şiddet)</span></div>
+        <div style='font-size:16px; color:{COLORS['GREEN']}; font-weight:bold;'>{best_session[ref_pm]:.1f} {ref_unit}/min <span style='font-size:12px; color:#9CA3AF; font-weight:normal;'>(Şiddet)</span></div>
         <div style='font-size:11px; color:#9CA3AF; margin-top:5px;'>Tarih: {best_session['tarih'].strftime('%d.%m.%Y')} ({best_session['tip']})</div>
     </div>
     """, unsafe_allow_html=True)

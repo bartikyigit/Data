@@ -306,7 +306,7 @@ def plot_dual_radar(p1_name, p1_data, p2_name, p2_data, metrics_list):
         p2_vals.append((p2_m / max_m) * 100)
 
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=p1_vals, theta=labels, fill='toself', name=p1_name, line_color=COLORS['RED']))
+    fig.add_trace(go.Scatterpolar(r=p1_vals, theta=labels, fill='toself', name=p1_name, line_color=COLORS['GREEN']))
     fig.add_trace(go.Scatterpolar(r=p2_vals, theta=labels, fill='toself', name=p2_name, line_color=COLORS['BLACK']))
     
     fig.update_layout(
@@ -426,7 +426,7 @@ def plot_min_max_avg(df_player, df_team, metric):
     fig.add_trace(go.Scatter(
         x=[p_val], y=[''],
         mode='markers',
-        marker=dict(color=COLORS['RED'], size=22, symbol='diamond',
+        marker=dict(color=COLORS['GREEN'], size=22, symbol='diamond',
                     line=dict(color='white', width=2)),
         name='Oyuncu',
     ))
@@ -483,7 +483,7 @@ def plot_player_radar(player_data, team_data, radar_metrics=None):
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
         r=p_vals, theta=labels, fill='toself', name='Oyuncu',
-        line=dict(color=COLORS['RED'], width=3), fillcolor=hex_to_rgba(COLORS['RED'], 0.2),
+        line=dict(color=COLORS['GREEN'], width=3), fillcolor=hex_to_rgba(COLORS['GREEN'], 0.2),
     ))
     fig.add_trace(go.Scatterpolar(
         r=t_avgs, theta=labels, fill='none', name='Takım Ort.',
@@ -552,7 +552,7 @@ def plot_day_comparison(camp_data: pd.DataFrame, day1, day2, metric: str) -> go.
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        name=label1, x=players, y=v1, marker=dict(color=COLORS['RED'], opacity=0.9),
+        name=label1, x=players, y=v1, marker=dict(color=COLORS['GREEN'], opacity=0.9),
         text=[f"{v:.1f}" if v else '' for v in v1], textposition='outside',
         textfont=dict(family=_FONT, size=10, weight='bold'),
     ))
@@ -578,7 +578,7 @@ def plot_camp_comparison(camp1_data: pd.DataFrame, camp2_data: pd.DataFrame, met
     m_info = METRICS.get(metric, {'display': metric, 'unit': ''})
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        name=camp1_label.upper(), x=players, y=v1, marker=dict(color=COLORS['RED'], opacity=0.9),
+        name=camp1_label.upper(), x=players, y=v1, marker=dict(color=COLORS['GREEN'], opacity=0.9),
         text=[f"{v:.1f}" if v else '' for v in v1], textposition='outside',
         textfont=dict(family=_FONT, size=10, weight='bold'),
     ))
@@ -629,7 +629,7 @@ def plot_scatter(data: pd.DataFrame, x_metric: str, y_metric: str, color_by: str
 
     fig = go.Figure()
     groups = df.groupby(df['tip'].str.upper().str.strip()) if color_by == 'tip' else df.groupby('player_name')
-    palette = {'TRAINING': COLORS['RED'], 'MATCH': COLORS['BLACK']} if color_by == 'tip' else {p: PLAYER_PALETTE[i % len(PLAYER_PALETTE)] for i, p in enumerate(df['player_name'].unique())}
+    palette = {'TRAINING': COLORS['GREEN'], 'MATCH': COLORS['BLACK']} if color_by == 'tip' else {p: PLAYER_PALETTE[i % len(PLAYER_PALETTE)] for i, p in enumerate(df['player_name'].unique())}
 
     for group_name, group_df in groups:
         is_hl   = (highlight_player and group_name == highlight_player)
@@ -660,7 +660,7 @@ def plot_scatter(data: pd.DataFrame, x_metric: str, y_metric: str, color_by: str
 
 
 def plot_player_comparison(p1_data, p2_data, metric, team_data=None, p1_name='OYUNCU 1', p2_name='OYUNCU 2'):
-    names, values, colors = [p1_name.upper(), p2_name.upper()], [p1_data[metric].mean(), p2_data[metric].mean()], [COLORS['RED'], COLORS['BLACK']]
+    names, values, colors = [p1_name.upper(), p2_name.upper()], [p1_data[metric].mean(), p2_data[metric].mean()], [COLORS['GREEN'], COLORS['BLACK']]
     if team_data is not None and not team_data.empty:
         names.append('TAKIM ORT.'); values.append(team_data[metric].mean()); colors.append(COLORS['GRAY_500'])
 

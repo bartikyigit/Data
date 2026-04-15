@@ -65,7 +65,7 @@ if query:
                 <div style="
                     background: white; 
                     border: 1px solid {COLORS['GRAY_200']}; 
-                    border-left: 5px solid {COLORS['RED']}; 
+                    border-left: 5px solid {COLORS['GREEN']}; 
                     border-radius: 12px; 
                     padding: 15px 25px; 
                     margin-bottom: 12px; 
@@ -84,7 +84,7 @@ if query:
                             </div>
                             <div style="font-size: 13px; font-weight: 700; color: {COLORS['GRAY_500']}; text-transform: uppercase;">
                                 🇹🇷 {row['Last_Age']} MİLLİ TAKIMI &nbsp;·&nbsp; 
-                                <span style="color: {COLORS['RED']}">{row['Camp_Count']} KAMP</span> &nbsp;·&nbsp; 
+                                <span style="color: {COLORS['GREEN']}">{row['Camp_Count']} KAMP</span> &nbsp;·&nbsp; 
                                 {row['Session_Count']} SEANS
                             </div>
                         </div>

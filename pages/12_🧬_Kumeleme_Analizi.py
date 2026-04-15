@@ -159,7 +159,7 @@ section_title("OYUNCU PROFİLİ DAĞILIM HARİTASI (PCA PROJECTION)", "🌌",
 hover_data = {'PCA1': False, 'PCA2': False, 'age_group': True}
 for m in selected_metrics: hover_data[m] = ':.1f'
 
-cluster_colors = [COLORS['RED'], '#1F2937', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']
+cluster_colors = [COLORS['GREEN'], '#1F2937', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']
 
 fig_scatter = px.scatter(
     player_stats, x='PCA1', y='PCA2', color='Akilli_Grup',

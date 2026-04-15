@@ -195,7 +195,7 @@ def create_bullet_chart(title, player_val, team_min, team_avg, team_max, unit=""
     
     fig.add_trace(go.Bar(
         x=[player_val], y=[""], orientation='h',
-        marker=dict(color=COLORS['RED']),
+        marker=dict(color=COLORS['GREEN']),
         width=0.35, hoverinfo='none', name="Oyuncu Değeri"
     ))
     
@@ -209,7 +209,7 @@ def create_bullet_chart(title, player_val, team_min, team_avg, team_max, unit=""
         height=130, margin=dict(l=10, r=40, t=50, b=30),
         plot_bgcolor='white', paper_bgcolor='white',
         showlegend=False,
-        annotations=[dict(x=player_val, y=0, text=f"<b>{player_val:.2f}</b>", showarrow=False, xanchor="left", xshift=8, font=dict(color=COLORS['RED'], size=15))]
+        annotations=[dict(x=player_val, y=0, text=f"<b>{player_val:.2f}</b>", showarrow=False, xanchor="left", xshift=8, font=dict(color=COLORS['GREEN'], size=15))]
     )
     return fig
 
@@ -272,7 +272,7 @@ def create_spider_radar(player_z_scores, team_z_scores_mean=None, title="Kapasit
         # Oyuncu Profili (Üstte)
         fig.add_trace(go.Scatterpolar(
             r=values + [values[0]], theta=categories + [categories[0]],
-            fill='toself', line_color=COLORS['RED'], fillcolor='rgba(227, 10, 23, 0.4)',
+            fill='toself', line_color=COLORS['GREEN'], fillcolor='rgba(227, 10, 23, 0.4)',
             name='Oyuncu', hoverinfo='text', hovertext=hover_texts + [hover_texts[0]]
         ))
         
@@ -304,7 +304,7 @@ with tab1:
         team_z_mean = z_scores.mean()
         
         st.markdown(f"""
-        <div style='background:white; border:1px solid #E5E7EB; border-left:8px solid {COLORS['RED']}; padding:20px; border-radius:12px; margin-bottom:15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);'>
+        <div style='background:white; border:1px solid #E5E7EB; border-left:8px solid {COLORS['GREEN']}; padding:20px; border-radius:12px; margin-bottom:15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);'>
             <div style='display:flex; justify-content:space-between; align-items:center;'>
                 <div>
                     <h2 style='margin:0; font-family:"Bebas Neue", sans-serif; color:{COLORS['GRAY_900']}; font-size:36px;'>{search_player.upper()}</h2>
@@ -312,7 +312,7 @@ with tab1:
                 </div>
                 <div style='text-align:right;'>
                     <div style='font-size:12px; color:gray; font-weight:bold; text-transform:uppercase;'>Takım Sırası: {p_data.get('Genel_Sira', '-')} / {len(test_data)}</div>
-                    <div style='font-size:38px; font-family:"Bebas Neue", sans-serif; color:{COLORS['RED']}; line-height:1;'>%{p_data.get('Test_Skoru',0):.1f}</div>
+                    <div style='font-size:38px; font-family:"Bebas Neue", sans-serif; color:{COLORS['GREEN']}; line-height:1;'>%{p_data.get('Test_Skoru',0):.1f}</div>
                     <div style='font-size:11px; color:gray;'>Genel Atletik Skor</div>
                 </div>
             </div>
@@ -361,7 +361,7 @@ with tab1:
         st.markdown(f"""
         <div style='display:flex; gap:20px; align-items:center; background:#FAFAFA; padding:10px 20px; border-radius:8px; margin-top:20px; margin-bottom:10px; border:1px solid #E5E7EB;'>
             <span style='font-size:13px; font-weight:bold; color:#374151;'>GRAFİK OKUMA REHBERİ:</span>
-            <div style='display:flex; align-items:center; gap:5px;'><div style='width:16px; height:16px; background:{COLORS['RED']}; border-radius:4px;'></div><span style='font-size:12px; color:gray;'>Oyuncu Değeri</span></div>
+            <div style='display:flex; align-items:center; gap:5px;'><div style='width:16px; height:16px; background:{COLORS['GREEN']}; border-radius:4px;'></div><span style='font-size:12px; color:gray;'>Oyuncu Değeri</span></div>
             <div style='display:flex; align-items:center; gap:5px;'><div style='width:4px; height:16px; background:{COLORS['GRAY_900']};'></div><span style='font-size:12px; color:gray;'>Takım Ortalaması</span></div>
             <div style='display:flex; align-items:center; gap:5px;'><div style='width:30px; height:16px; background:rgba(156, 163, 175, 0.3); border-radius:4px;'></div><span style='font-size:12px; color:gray;'>Takım Yayılımı (Min-Max)</span></div>
         </div>
@@ -374,7 +374,7 @@ with tab1:
             t_times = [test_data['sprint_10m'].mean(), test_data['sprint_20m'].mean(), test_data['sprint_30m'].mean()]
             
             fig_sprint = go.Figure()
-            fig_sprint.add_trace(go.Scatter(x=distances, y=p_times, mode='lines+markers+text', name=search_player.upper(), line=dict(color=COLORS['RED'], width=3), text=[f"{t:.2f}" for t in p_times], textposition='bottom right'))
+            fig_sprint.add_trace(go.Scatter(x=distances, y=p_times, mode='lines+markers+text', name=search_player.upper(), line=dict(color=COLORS['GREEN'], width=3), text=[f"{t:.2f}" for t in p_times], textposition='bottom right'))
             fig_sprint.add_trace(go.Scatter(x=distances, y=t_times, mode='lines+markers', name='Takım Ort.', line=dict(color=COLORS['GRAY_800'], width=2, dash='dash')))
             fig_sprint.update_layout(title="<b>İvmelenme ve Hız Eğrisi (Split Times)</b>", height=250, margin=dict(t=40, b=20, l=20, r=20), yaxis=dict(autorange='reversed', title='Süre (sn)'), plot_bgcolor='white', legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
             st.plotly_chart(fig_sprint, width='stretch', config={'displayModeBar': False})
@@ -514,7 +514,7 @@ with tab4:
         df_1d['Label'] = df_1d['Sira_Int'].astype(str) + ". " + df_1d['player_name']
         
         # Renklendirme (Seçili oyuncu Kırmızı, diğerleri Gri/Siyah)
-        df_1d['Renk'] = np.where(df_1d['player_name'] == search_player, COLORS['RED'], COLORS['GRAY_700'])
+        df_1d['Renk'] = np.where(df_1d['player_name'] == search_player, COLORS['GREEN'], COLORS['GRAY_700'])
         
         fig_1d = px.scatter(df_1d, x=sel_1d, y='Sira_Int', text='Label',
                             labels={sel_1d: f"{info['name']} ({info['unit']})", 'Sira_Int': 'Sıralama (Liderden Sona)'})
@@ -549,7 +549,7 @@ with tab5:
         plot_df['Kategori'] = np.where(plot_df['player_name'].isin(highlight_players), 'Seçili Oyuncular', 'Takım')
         plot_df['Text'] = np.where(plot_df['player_name'].isin(highlight_players), plot_df['player_name'], '')
         
-        color_map = {'Seçili Oyuncular': COLORS['RED'], 'Takım': COLORS['GRAY_400']}
+        color_map = {'Seçili Oyuncular': COLORS['GREEN'], 'Takım': COLORS['GRAY_400']}
         
         fig_scatter = px.scatter(plot_df, x=x_axis, y=y_axis, color='Kategori', color_discrete_map=color_map,
                                  hover_name='player_name', text='Text',
@@ -600,7 +600,7 @@ with tab6:
                     
             if len(categories) >= 3:
                 fig_h2h_radar = go.Figure()
-                fig_h2h_radar.add_trace(go.Scatterpolar(r=v1 + [v1[0]], theta=categories + [categories[0]], fill='toself', name=p1_sel, line_color=COLORS['RED']))
+                fig_h2h_radar.add_trace(go.Scatterpolar(r=v1 + [v1[0]], theta=categories + [categories[0]], fill='toself', name=p1_sel, line_color=COLORS['GREEN']))
                 fig_h2h_radar.add_trace(go.Scatterpolar(r=v2 + [v2[0]], theta=categories + [categories[0]], fill='toself', name=p2_sel, line_color=COLORS['BLACK']))
                 fig_h2h_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(size=8))), showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5), height=380, margin=dict(t=20, b=20), title=dict(text="Kapasite Eşleşme Radarı", x=0.5))
                 st.plotly_chart(fig_h2h_radar, width='stretch', config={'displayModeBar': False})
@@ -617,7 +617,7 @@ with tab6:
                 
         if comp_metrics:
             fig_h2h = go.Figure()
-            fig_h2h.add_trace(go.Bar(name=p1_sel, x=comp_metrics, y=p1_z_list, marker_color=COLORS['RED']))
+            fig_h2h.add_trace(go.Bar(name=p1_sel, x=comp_metrics, y=p1_z_list, marker_color=COLORS['GREEN']))
             fig_h2h.add_trace(go.Bar(name=p2_sel, x=comp_metrics, y=p2_z_list, marker_color=COLORS['BLACK']))
             
             fig_h2h.add_hline(y=50, line_dash="dash", line_color=COLORS['GRAY_500'], annotation_text="Takım Ortalaması")

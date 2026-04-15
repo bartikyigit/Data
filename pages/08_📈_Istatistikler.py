@@ -89,7 +89,7 @@ with tabs[0]:
         with k1: st.markdown(f"<div class='metric-card' style='padding:15px;'><div class='sc-label'>TOPLAM OYUNCU</div><div class='sc-val' style='font-size:26px;'>{total_players}</div></div>", unsafe_allow_html=True)
         with k2: st.markdown(f"<div class='metric-card' style='padding:15px;'><div class='sc-label'>GEÇERLİ GÜN / SEANS</div><div class='sc-val' style='font-size:26px;'>{total_days}</div></div>", unsafe_allow_html=True)
         with k3: st.markdown(f"<div class='metric-card' style='padding:15px;'><div class='sc-label'>ANTRENMAN GÜNÜ</div><div class='sc-val' style='font-size:26px; color:{COLORS['BLACK']};'>{train_days}</div></div>", unsafe_allow_html=True)
-        with k4: st.markdown(f"<div class='metric-card' style='padding:15px;'><div class='sc-label'>MAÇ GÜNÜ</div><div class='sc-val' style='font-size:26px; color:{COLORS['RED']};'>{match_days}</div></div>", unsafe_allow_html=True)
+        with k4: st.markdown(f"<div class='metric-card' style='padding:15px;'><div class='sc-label'>MAÇ GÜNÜ</div><div class='sc-val' style='font-size:26px; color:{COLORS['GREEN']};'>{match_days}</div></div>", unsafe_allow_html=True)
 
         st.markdown(f"""
         <div style="background-color: #F9FAFB; padding: 15px; border-radius: 8px; border-left: 4px solid {COLORS['SUCCESS']}; margin-top:10px;">
@@ -131,7 +131,7 @@ with tabs[0]:
                     <div style="border: 1px solid #E5E7EB; border-radius: 8px; padding: 15px; margin-bottom:10px;">
                         <div style="font-size: 11px; font-weight: bold; color: #6B7280; text-transform: uppercase;">🔥 Takım Ortalamasının En Yüksek Olduğu Gün</div>
                         <div style="font-size: 20px; font-weight: bold; color: {COLORS['GRAY_900']}; margin-top: 5px;">{daily_stats.loc[idx_max_mean, 'tarih_str']} ({daily_stats.loc[idx_max_mean, 'tip']})</div>
-                        <div style="font-size: 18px; color: {COLORS['RED']}; font-weight: bold;">{daily_stats.loc[idx_max_mean, 'mean']:.1f} <span style="font-size:12px; color:#9CA3AF;">{m_unit}</span></div>
+                        <div style="font-size: 18px; color: {COLORS['GREEN']}; font-weight: bold;">{daily_stats.loc[idx_max_mean, 'mean']:.1f} <span style="font-size:12px; color:#9CA3AF;">{m_unit}</span></div>
                     </div>
                     """, unsafe_allow_html=True)
                     
