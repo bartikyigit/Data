@@ -198,7 +198,7 @@ with tab2:
         avg_high_speed=(pm_sprint, 'mean'),
         avg_load=(pm_load, 'mean'),
         max_speed=('smax_kmh', 'max'),
-        session_count=('tarih', 'count')
+        session_count=('impact_score', 'count')
     ).reset_index().sort_values('avg_impact', ascending=False)
     
     camp_impact.index = np.arange(1, len(camp_impact) + 1)
