@@ -139,7 +139,6 @@ with tab1:
         with col_a:
             section_title("TAKIM SIRALAMASI TABLOSU", "📋")
             
-            # Sütun koruması: Tabloda hata vermemesi için
             day_sprint = 'dist_25_plus' if 'dist_25_plus' in day_data.columns else pm_sprint
             day_load = 'player_load' if 'player_load' in day_data.columns else pm_load
             
@@ -192,7 +191,7 @@ with tab2:
     section_title("HAFTA GENEL ORTALAMASI VE LİDERLİK TABLOSU", "🏆")
     st.markdown("<p style='color: gray; font-size: 13px;'>Hafta boyunca tüm oyuncuların günlük Impact skorlarının ve değişkenlerinin genel aritmetik ortalamasıdır.</p>", unsafe_allow_html=True)
     
-    # HATA ÇÖZÜMÜ: Dinamik pm sütunları kullanılarak agg (gruplama) yapılır.
+    # HATA ÇÖZÜMÜ: session_count için 'impact_score' sayılıyor.
     camp_impact = camp_data.groupby('player_name').agg(
         avg_impact=('impact_score', 'mean'),
         avg_high_speed=(pm_sprint, 'mean'),
@@ -246,7 +245,6 @@ with tab3:
                 
                 cols = st.columns(4)
                 
-                # Dinamik PM korumasıyla sözlük (Dict) oluşturuluyor
                 metrics_dict = {
                     'impact_score': 'İMPACT SKOR DEĞİŞİMİ',
                     pm_sprint: f'{d_dist_25} {unit_sprint}',
@@ -282,47 +280,58 @@ with tab4:
     st.markdown("<p style='color: gray; font-size: 13px;'>Oyuncunun haftanın ilk gününden son gününe kadar gösterdiği performans dalgalanması (Varyans). Bu grafik oyuncunun yorgunluk direncini ve istikrarını ölçer.</p>", unsafe_allow_html=True)
     
     sel_player_trend = st.selectbox("OYUNCU SEÇİNİZ", sorted(camp_data['player_name'].unique()), key="ia_trend_player")
-    player_trend_data = camp_data[camp_data['player_name'] == sel_player_trend].sort_values('tarih')
     
-    if len(player_trend_data) >= 2:
-        daily_impact = player_trend_data[['tarih', 'impact_score']].copy()
-        daily_impact['tarih_str'] = daily_impact['tarih'].dt.strftime('%d.%m')
+    # HATA ÇÖZÜMÜ: 'tarih' sütununun adını dinamik olarak bulur
+    date_col = 'tarih' if 'tarih' in camp_data.columns else ('Tarih' if 'Tarih' in camp_data.columns else ('Date' if 'Date' in camp_data.columns else None))
+    
+    if date_col:
+        player_trend_data = camp_data[camp_data['player_name'] == sel_player_trend].sort_values(date_col)
         
-        fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
-            mode='lines',
-            fill='tozeroy',
-            fillcolor='rgba(0,122,51,0.05)', 
-            line=dict(width=0),
-            showlegend=False,
-            hoverinfo='skip'
-        ))
-        
-        fig.add_trace(go.Scatter(
-            x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
-            mode='lines+markers',
-            name='Impact Score',
-            line=dict(color=COLORS['GREEN'], width=3, shape='spline'),
-            marker=dict(size=12, color='white', line=dict(color=COLORS['GREEN'], width=2.5))
-        ))
-        
-        mean_impact = daily_impact['impact_score'].mean()
-        fig.add_hline(y=mean_impact, line_dash="dash", line_color=COLORS['GRAY_400'], 
-                      annotation_text=f"Ortalama: {mean_impact:.1f}",
-                      annotation_position="top left",
-                      annotation_font=dict(size=12, color=COLORS['GRAY_700'], weight="bold"))
-                      
-        fig.update_layout(
-            template="plotly_white", 
-            height=450, 
-            margin=dict(l=20, r=20, t=40, b=20),
-            xaxis=dict(title="Tarih", gridcolor='#F3F4F6', tickfont=dict(weight="bold")),
-            yaxis=dict(title="Impact Score (0-100)", gridcolor='#F3F4F6', range=[max(0, daily_impact['impact_score'].min()-10), min(100, daily_impact['impact_score'].max()+10)])
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        if len(player_trend_data) >= 2:
+            daily_impact = player_trend_data[[date_col, 'impact_score']].copy()
+            
+            try:
+                daily_impact['tarih_str'] = pd.to_datetime(daily_impact[date_col]).dt.strftime('%d.%m')
+            except:
+                daily_impact['tarih_str'] = daily_impact[date_col].astype(str)
+            
+            fig = go.Figure()
+            
+            fig.add_trace(go.Scatter(
+                x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
+                mode='lines',
+                fill='tozeroy',
+                fillcolor='rgba(0,122,51,0.05)', 
+                line=dict(width=0),
+                showlegend=False,
+                hoverinfo='skip'
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=daily_impact['tarih_str'], y=daily_impact['impact_score'],
+                mode='lines+markers',
+                name='Impact Score',
+                line=dict(color=COLORS['GREEN'], width=3, shape='spline'),
+                marker=dict(size=12, color='white', line=dict(color=COLORS['GREEN'], width=2.5))
+            ))
+            
+            mean_impact = daily_impact['impact_score'].mean()
+            fig.add_hline(y=mean_impact, line_dash="dash", line_color=COLORS['GRAY_400'], 
+                          annotation_text=f"Ortalama: {mean_impact:.1f}",
+                          annotation_position="top left",
+                          annotation_font=dict(size=12, color=COLORS['GRAY_700'], weight="bold"))
+                          
+            fig.update_layout(
+                template="plotly_white", 
+                height=450, 
+                margin=dict(l=20, r=20, t=40, b=20),
+                xaxis=dict(title="Tarih", gridcolor='#F3F4F6', tickfont=dict(weight="bold")),
+                yaxis=dict(title="Impact Score (0-100)", gridcolor='#F3F4F6', range=[max(0, daily_impact['impact_score'].min()-10), min(100, daily_impact['impact_score'].max()+10)])
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            info_box("Trend analizi grafiği çizebilmek için oyuncunun bu haftada en az 2 geçerli seans (antrenman/maç) verisi gereklidir.")
     else:
-        info_box("Trend analizi grafiği çizebilmek için oyuncunun bu haftada en az 2 geçerli seans (antrenman/maç) verisi gereklidir.")
+        info_box("Günlük tarih verisi bulunamadığı için trend analizi çizilemiyor.")
 
 st.markdown('<div class="tff-footer"><p>Bursaspor Veri Merkezi · A Takım ve Akademi Atletik Performans Sistemi</p></div>', unsafe_allow_html=True)
